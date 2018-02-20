@@ -1,8 +1,19 @@
 #!/usr/bin/env python
+# encoding:utf-8
 
 kb = ("Knäböj (tävling)", None, [(80, 1, "2017-11-11")])
 kb1 = ("Knäböj (hög stång)", kb, [(80, 1, "2017-11-11")])
 kb2 = ("Knäböj (hög stång, bälte)", kb, [(80, "2017-11-11")])
+
+kb_bredboj = ("Bredböj",)
+rygg_hangande_rodd = ("Hängande rodd",)
+rygg_latsdrag = ("Latsdrag",)
+bp_tavling = ("Bänkpress (tävling)",)
+bp_pinpress = ("Pinpress",)
+rygg_tryndrag = ("Tryndrag",)
+marklyft_sumo = ("Sumomarklyft",)
+marklyft_klotsving = ("Klotsving",)
+rygg_lyft = ("Rygglyft",)
 
 pass_a = [
 (kb_bredboj, "Långsam ned", [(30,3), (40,3),(40,3),(40,3),(40,3),(40,3),(40,3),(40,3)]),
@@ -19,7 +30,9 @@ pass_a = [
 ]
 
 def print_session(sess):
-    
+    for exc, descr, sets in sess:
+        name = exc[0]
+        print "%s (%s): %s" % (name, descr, ", ".join(["%dx%d" % (r, w) for r, w in sets]))
 
 def main():
     print_session(pass_a)
