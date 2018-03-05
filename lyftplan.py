@@ -12,7 +12,8 @@ import datetime
 class Exercise(object):
     NAME_WIDTH = 0
     CLASS_WIDTH = 0
-    def __init__(self, name, flavor, parent, related, reps):
+    MINUTES_PER_SET_DEFAULT = 4.5
+    def __init__(self, name, flavor, parent, related, reps, time):
         """Initialize an Exercise object.
 
         flavor: competition, touch'n'go, etc.
@@ -25,8 +26,25 @@ class Exercise(object):
         self.name = name
         self.flavor = flavor
         self.parent = parent
-        self.related = related
         self.reps = reps
+
+        self.children = []
+        if self.parent:
+            #print("Exercise. Appending", self, "as child of", parent)
+            self.parent.children.append(self)
+
+        # All exercises related to me. Essentially, only KB, BP, ML
+        # Reps and minutes are added from related, but not this.
+        self.related = []
+
+        if related:
+            related.relate(self)
+
+        if time is not None:
+            #print(self, "has custom time", time)
+            self.minutes_per_set = time
+        else:
+            self.minutes_per_set = Exercise.MINUTES_PER_SET_DEFAULT
 
         pretty = self.name
         if self.flavor != "":
@@ -38,6 +56,9 @@ class Exercise(object):
         if len(self.__class__.__name__) > Exercise.CLASS_WIDTH:
             Exercise.CLASS_WIDTH = len(self.__class__.__name__)
 
+    def relate(self, related):
+        self.related.append(related)
+
     def __str__(self):
         pretty = self.name
         if self.flavor != "":
@@ -46,7 +67,8 @@ class Exercise(object):
         #classname = self.__class__.__name__ + ": "
         classname = ""
 
-        return "{:<{}}{:<{}}".format(classname, Exercise.CLASS_WIDTH, pretty, Exercise.NAME_WIDTH)
+        #return "{:<{}}{:<{}}".format(classname, Exercise.CLASS_WIDTH, pretty, Exercise.NAME_WIDTH)
+        return "{:<{}}".format(pretty, Exercise.NAME_WIDTH)
 
 
     def __call__(self, comment, setspec):
@@ -67,42 +89,107 @@ class Exercise(object):
         return root
 
 class KB(Exercise):
-    def __init__(self, flavor, parent=None, related=None, reps={}):
-        super().__init__("Knäböj", flavor, parent, related, reps)
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Knäböj", flavor, parent, related, reps, time)
 
 class BP(Exercise):
-    def __init__(self, flavor, parent=None, related=None, reps={}):
-        super().__init__("Bänkpress", flavor, parent, related, reps)
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Bänkpress", flavor, parent, related, reps, time)
 
 class ML(Exercise):
-    def __init__(self, flavor, parent=None, related=None, reps={}):
-        super().__init__("Marklyft", flavor, parent, related, reps)
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Marklyft", flavor, parent, related, reps, time)
 
 class Rumpa(Exercise):
-    def __init__(self, flavor, parent=None, related=None, reps={}):
-        super().__init__("Rumpövningar", flavor, parent, related, reps)
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Rumpa", flavor, parent, related, reps, time)
+        if time is None:
+            self.minutes_per_set = 2.5
 
 class Rygg(Exercise):
-    def __init__(self, flavor, parent=None, related=None, reps={}):
-        super().__init__("Ryggövningar", flavor, parent, related, reps)
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Rygg", flavor, parent, related, reps, time)
+        if time is None:
+            self.minutes_per_set = 2.5
+
+class Axlar(Exercise):
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Axlar", flavor, parent, related, reps, time)
+        if time is None:
+            self.minutes_per_set = 2
+
+class Armar(Exercise):
+    def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
+        super().__init__("Armar", flavor, parent, related, reps, time)
+        if time is None:
+            self.minutes_per_set = 1.5
 
 class Line(object):
     PRINT_MODE_KG = 0
     PRINT_MODE_PERCENT = 1
+    OUTPUT_TYPE_READABLE = 0
+    OUTPUT_TYPE_CSV = 1
     def __init__(self, exercise, note, sets):
         self.exercise = exercise
         self.note = note
         self.sets = sets
         self.print_mode = Line.PRINT_MODE_KG
+        self.output_type = Line.OUTPUT_TYPE_READABLE
 
-    def __str__(self):
+    def _str_readable(self):
         strsets = ", ".join([self._set2str(s) for s in self.sets])
         inol = self.inol()
-        inoltext = "=> {:.2f} INOL".format(inol)
+        inoltext = "{:.2f}".format(inol)
         if inol <= 0:
             inol = 0
             inoltext = ""
-        return "{exercise}: {sets}\n{rep_count} | {avg_set_weight:.1f} / {avg_set_percent:2.0f}% {inoltext}\nRoot: {root}".format(exercise=self.exercise, rep_count=self.rep_count(), sets=strsets, avg_set_weight=self.avg_set_weight(), avg_set_percent=self.avg_set_percent(), inoltext=inoltext, root=self.exercise.root())
+        #return "{exercise}: {sets}\n{rep_count} | {avg_set_weight:.1f} / {avg_set_percent:2.0f}% {inoltext}\nRoot: {root}".format(exercise=self.exercise, rep_count=self.rep_count(), sets=strsets, avg_set_weight=self.avg_set_weight(), avg_set_percent=self.avg_set_percent(), inoltext=inoltext, root=self.exercise.root())
+
+        return "{exercise} ({inoltext}): {sets}".format(exercise=self.exercise, rep_count=self.rep_count(), sets=strsets, avg_set_weight=self.avg_set_weight(), avg_set_percent=self.avg_set_percent(), inoltext=inoltext, root=self.exercise.root())
+
+    def _str_csv(self):
+        def _weight_formatter(w):
+            w = float(w)
+            if w.is_integer():
+                return "{:.0f}".format(w)
+            else:
+                return "{:.2f}".format(w)
+
+        #setreps = [self._set2rep(s) for s in self.sets]
+        #setweights = [self._set2rep(s) for s in self.sets]
+
+        setweightreps = [self._set2weightreps(s) for s in self.sets]
+
+        inol = self.inol()
+        inoltext = "{:.2f}".format(inol)
+        if inol <= 0:
+            inol = 0
+            inoltext = ""
+
+        reps = "#".join(list(map(lambda x: x[1], setweightreps)))
+        weights = ""
+        if any(map(lambda x: x[0] > 0, setweightreps)):
+            # print second line
+            weights = "#".join(map(lambda x: _weight_formatter(x[0]), setweightreps))
+
+
+        line1 = reps
+        line2 = None
+        if weights:
+            line1 = weights
+            line2 = reps
+
+        s = "{exercise}#{line1}".format(exercise=str(self.exercise).strip(), rep_count=self.rep_count(), line1=line1, avg_set_weight=self.avg_set_weight(), avg_set_percent=self.avg_set_percent(), inoltext=inoltext, root=self.exercise.root())
+
+        if line2:
+            s += "\n{note}#{line2}".format(note=self.note,line2=line2)
+        return s
+
+    def __str__(self):
+        if self.output_type == Line.OUTPUT_TYPE_READABLE:
+            return self._str_readable()
+        else:
+            return self._str_csv()
 
     def __format__(self, spec):
         return str(self)
@@ -116,6 +203,10 @@ class Line(object):
             return (s[1] + s[2])/2
         else:
             return 1
+
+    def minutes(self):
+        #print("MINUTES", self, "setcount", len(self.sets), "minutes-per-set", self.exercise.minutes_per_set)
+        return len(self.sets) * self.exercise.minutes_per_set
 
     def weight(self, s):
         if len(s) >= 2:
@@ -155,9 +246,13 @@ class Line(object):
     def min_set_percent(self):
         max1rm = self.exercise.max1rm()
         if max1rm <= 0:
+            #print("max1rm", self, " <= 0:", max1rm)
             return 0
 
-        return min(self.weight(s)*100.0/max1rm for s in self.sets)
+        values = [self.weight(s)*100.0/max1rm for s in self.sets]
+        #print("min:",self, values, "=", min(values))
+
+        return min(values)
 
     def set_percent_list(self):
         max1rm = self.exercise.max1rm()
@@ -176,6 +271,8 @@ class Line(object):
         return sum(self.reps(s) * self.weight(s) for s in self.sets)
 
     def inol(self):
+        if self.total_weight() < 1:
+            return 0
         inol = 0.0
         for s in self.sets:
             reps = self.reps(s)
@@ -183,6 +280,35 @@ class Line(object):
             inol += reps / (100.0 - percent*100.0)
         return inol
 
+
+    def _set2weightreps(self, aset):
+        """Fill in missing weights if any and transform into proper string format.
+
+        aset can be a tuple of 1, 2 or 3 items.
+
+        (reps,) => (0, "reps")
+        (weight,reps) => (weight, "reps")
+        (weight,reps_from,reps_to) => (weight, "reps_from-reps_to")
+
+        """
+        assert (len(aset) >= 1) and (len(aset) <= 3), ("set2str: invalid number ({}) of items in {}".format(len(aset), str(aset)))
+
+        what = aset[0]
+        if self.print_mode == Line.PRINT_MODE_PERCENT:
+            max1 = self.exercise.reps.get(1, (0,''))
+            max1kg = max1[0]
+            if max1kg > 1:
+                what = "{:.0f}% ".format(what*100.0/float(max1kg))
+
+        if len(aset) == 1:
+            return (0, "{}".format(what))
+        elif len(aset) == 2:
+            return (what,"{}".format(aset[1]))
+        elif len(aset) == 3:
+            return (what, "{}-{}".format(aset[1], aset[2]))
+
+        # doesn't happen
+        return "<fel>"
 
     def _set2str(self, aset):
         """Return a string representation of aset.
@@ -213,30 +339,80 @@ class Line(object):
         return "<fel>"
 
 
+##############################################################
+#
+# Exercise Bank
+#
+##############################################################
+
 kb = KB("hög stång, bälte", reps={1 : (110, "2017-11-11")})
-bp = BP("maxbrett", reps={1 : (65, "2018-02-24")})
-ml_sumo = ML("sumo", reps={1 : (130, "2018-01-20")})
-ml = ml_sumo
+bp_tavling = BP("tävling", reps={1 : (65, "2018-02-24")})
+ml_tavling = ML("tävling", reps={1 : (130, "2018-01-20")})
+bp = BP("pekfinger, stopp", parent=bp_tavling, reps={1 : (130, "2018-01-20")})
+sumomark = ML("semisumo", ml_tavling)
 rygg = Rygg("")
 rumpa = Rumpa("")
+axlar = Axlar("", related=bp_tavling)
+armar = Armar("", related=bp_tavling)
+
+###################################################################
 
 # parent = ml, but intensity calculated against sumo's 1rm
-ml_smal = ML("smal", ml, reps={1 : (130, "2018-01-20")})
+smalmark = ML("smal", ml_tavling, reps={1 : (130, "2018-01-20")})
+klotsving = Rumpa("klotsving", rumpa, related=ml_tavling)
+enbensmark = Rumpa("enbensmark", rumpa, related=ml_tavling)
 
-kb_hs = KB("hög stång (utan bälte)", parent=kb, reps={1 : (85, "2017-11-11")})
-kb_bred = KB("bredböj", kb, reps={1 : (70, "2017-11-11")})
+kbhs = KB("hög stång (utan bälte)", parent=kb, reps={1 : (85, "2017-11-11")})
+bredboj = KB("bredböj", kb, reps={1 : (70, "2017-11-11")})
 
-bp_pinpress = BP("pinpress", bp)
+negativa_rh = Rygg("Negativa RH", rygg, related=bp_tavling)
+latsdrag = Rygg("latsdrag", rygg, related=bp_tavling)
+raka_latsdrag = Rygg("raka latsdrag", rygg, related=bp_tavling)
+rygglyft = Rygg("rygglyft", rygg, related=ml_tavling)
 
-rygg_hangande_rodd = Rygg("hängande rodd", rygg)
-rygg_latsdrag = Rygg("latsdrag", rygg)
-rygg_tryndrag = Rygg("tryndrag", rygg)
-#marklyft_sumo = ("Sumomarklyft", mls)
-rumpa_klotsving = Rumpa("klotsving", rumpa, related=ml)
-rygg_lyft = Rygg("rygglyft", rygg, related=ml)
+pinpress = BP("pinpress", bp, reps={1: (60, "2018-01-01")})
+catapult = BP("Catapult", bp, reps={1: (90, "2018-01-01")})
+
+tricepsrep = Armar("tricepsrep", armar, related=bp_tavling, time=1.5)
+
+militarpress = Axlar("Militärpress", axlar, reps={1: (35, "2017-10-10")}, time=3)
+
+hangande_rodd = Axlar("hängande rodd", axlar, related=bp_tavling)
+tryndrag = Axlar("tryndrag", axlar, related=bp_tavling, time=1.5)
+
+###################################################################################################
+#
+# Schedule Structure
+# 
+###################################################################################################
+
+def instantiate_line(line):
+    items = dict(globals().items())
+    for n, o in items.items():
+        name = line.split()[0].strip()
+        setspec = line.split('|')[1].strip()
+        comment = line.split('|')[0].strip()
+        comment = " ".join(comment.split()[1:]).strip()
+
+        #print(name, comment, setspec, "vs", n, o)
+        if n == name and isinstance(o, Exercise):
+            if comment == '|': comment = ""
+            #print("calling {}({}, {}, {})".format(o, name, comment, sets(setspec)))
+            return o(comment, sets(setspec))
+
+    import sys
+    sys.exit("Invalid line: {}".format(line))
+
+def instantiate_lines(lines):
+    ok = [line.strip() for line in lines.split('\n') if len(line.strip()) > 0]
+    lines = list(map(instantiate_line, ok))
+    return lines
 
 class Session(object):
     def __init__(self, lines, date=None):
+        if type(lines) == str:
+            lines = instantiate_lines(lines)
+
         self.lines = lines
         if date != None:
             date = datetime.date(*date)
@@ -261,7 +437,7 @@ class Week(object):
             for sess in sessions:
                 if sess.date == None:
                     sess.date = sessiondate
-                sessiondate += datetime.timedelta(days=1)
+                sessiondate += datetime.timedelta(days=2)
 
     def __len__(self):
         return len(self.sessions)
@@ -330,36 +506,166 @@ class Statistics(object):
         self.lines = [line for sess in self.sessions for line in sess.lines]
 
         self.data = {}
+        self.exercises = set()
         data = self.data
 
+        # Produce statistics for all exercises, without adding in children.
+        for line in self.lines:
+            ex = line.exercise
+
+            self.exercises.add(ex)
+
+            data[ex] = {'self': {
+                            'count': 1,
+                            'rep-count': line.rep_count(),
+                            'inol': line.inol(),
+                            'weight': line.total_weight(),
+                            'avg-set-percent': line.avg_set_percent(),
+                            'max-set-percent': line.max_set_percent(),
+                            'min-set-percent': line.min_set_percent(),
+                            'minutes': line.minutes()},
+
+                        'total': {
+                            'count': 1,
+                            'rep-count': line.rep_count(),
+                            'inol': line.inol(),
+                            'weight': line.total_weight(),
+                            'avg-set-percent': line.avg_set_percent(),
+                            'max-set-percent': line.max_set_percent(),
+                            'min-set-percent': line.min_set_percent(),
+                            'minutes': line.minutes()}
+                       }
+
+
+        for line in self.lines:
+            root = line.exercise.root()
+            if not root in data:
+                data[root] = {'self': {
+                                'count': 1,
+                                'rep-count': line.rep_count(),
+                                'inol': line.inol(),
+                                'weight': line.total_weight(),
+                                'avg-set-percent': line.avg_set_percent(),
+                                'max-set-percent': line.max_set_percent(),
+                                'min-set-percent': line.min_set_percent(),
+                                'minutes': line.minutes()},
+
+                            'total': {
+                                'count': 0,#,1,
+                                'rep-count': 0,#,line.rep_count(),
+                                'inol': 0,#,line.inol(),
+                                'weight': 0,#,line.total_weight(),
+                                'avg-set-percent': 0,#,line.avg_set_percent(),
+                                'max-set-percent': 0,#,line.max_set_percent(),
+                                'min-set-percent': 0,#,line.min_set_percent(),
+                                'minutes': 0}#,line.minutes()}
+                           }
+
+            # 
+            # Related: only rep-count and minutes
+            # Children: Everything else.
+            #
+            for child in root.children:
+                if not child in self.exercises:
+                    continue
+
+                #print("CHILDREN: Adding total of", child, "min", data[child]['self']['minutes'], "reps", data[child]['self']['rep-count'], "to", root)
+
+                data[root]['total']['count'] += data[child]['self']['count']
+                data[root]['total']['rep-count'] += data[child]['self']['rep-count']
+                data[root]['total']['inol'] += data[child]['self']['inol']
+                data[root]['total']['weight'] += data[child]['self']['weight']
+                data[root]['total']['minutes'] += data[child]['self']['minutes']
+
+                if data[root]['total']['max-set-percent'] < data[child]['self']['max-set-percent']:
+                    data[root]['total']['max-set-percent'] = data[child]['self']['max-set-percent']
+
+                if data[root]['total']['min-set-percent'] > data[child]['self']['min-set-percent']:
+                    data[root]['total']['min-set-percent'] = data[child]['self']['min-set-percent']
+
+                """
+                data[root]['total']['count'] += 1
+                data[root]['total']['rep-count'] += line.rep_count()
+                data[root]['total']['inol'] += line.inol()
+                data[root]['total']['weight'] += line.total_weight()
+                data[root]['total']['avg-set-percent'] += line.avg_set_percent()
+                data[root]['total']['max-set-percent'] += line.max_set_percent()
+                data[root]['total']['min-set-percent'] += line.min_set_percent()
+                data[root]['total']['minutes'] += line.minutes()
+
+                if data[root]['total']['max-set-percent'] < line.max_set_percent():
+                    data[root]['total']['max-set-percent'] = line.max_set_percent()
+
+                if data[root]['total']['min-set-percent'] > line.min_set_percent():
+                    data[root]['total']['min-set-percent'] = line.min_set_percent()
+                """
+
+
+            for related in root.related:
+                if not related in self.exercises:
+                    continue
+
+                #print("RELATED: Adding total of", related, "min", data[related]['self']['minutes'], "reps", data[related]['self']['rep-count'], "to", root)
+
+                data[root]['total']['rep-count'] += data[related]['self']['rep-count']
+                data[root]['total']['minutes'] += data[related]['self']['minutes']
+
+        # Process root data
+        for key, value in data.items():
+            data[key]['total']['avg-set-percent'] /= data[key]['total']['count']
+
+        """
+        # Produce statistics for all roots
         for line in self.lines:
             ex = line.exercise
 
             root = ex.root()
+
             if not root in data:
+                #print("Initializing", root)
                 data[root] = {'count': 0,
                               'rep-count': 0,
+                              'total-rep-count': line.rep_count(),
                               'inol': 0.0,
                               'total-weight': 0.0,
                               'avg-set-percent': 0,
                               'max-set-percent': 0,
-                              'min-set-percent': 100}
+                              'min-set-percent': 100,
+                              'total-minutes': 0,
+                              'minutes': line.minutes()}
 
             data[root]['count'] += 1
-            data[root]['rep-count'] += line.rep_count()
+            data[root]['total-rep-count'] += line.rep_count()
             data[root]['inol'] += line.inol()
             data[root]['total-weight'] += line.total_weight()
             data[root]['avg-set-percent'] += line.avg_set_percent()
+            data[root]['total-minutes'] += line.minutes()
 
             if data[root]['max-set-percent'] < line.max_set_percent():
                 data[root]['max-set-percent'] = line.max_set_percent()
 
             if data[root]['min-set-percent'] > line.min_set_percent():
+                #print(data[root]['min-set-percent'], " > ",  line.min_set_percent())
                 data[root]['min-set-percent'] = line.min_set_percent()
 
-
+        # Process data
         for key, value in data.items():
             data[key]['avg-set-percent'] /= data[key]['count']
+        """
+
+        """
+        # Add time and rep information from ancillary exercisess to base movements
+        counted_roots = {}
+        for ex, info in data.items():
+            if ex.related:
+                for related in ex.related:
+                    root = related.root()
+                    if not root in counted_roots:
+                        counted_roots[root] = True
+                        #print("Time for", root, "is", data[root]['minutes'])
+                        data[ex]['total-minutes'] += data[root]['minutes']
+                        data[ex]['total-rep-count'] += data[root]['rep-count']
+        """
 
 def sets(spec):
     """"Return a list of tuples from a string on the following format:
@@ -409,82 +715,77 @@ def print_lines(lines):
             print("{}\n".format(line.note))
         print("\n")
 
-def print_stats2(lines, sessions=1, indent=0):
-    data = {}
-    exstats = {}
-    """
-    for line in lines:
-        ex = line.exercise
+def print_session(sess, csv=False):
+    #print("Övning#set")
+    total_minutes = 0
+    for line in sess.lines:
+        #line.print_mode = Line.PRINT_MODE_PERCENT
+        if csv:
+            line.output_type = Line.OUTPUT_TYPE_CSV
+        print(line)
+        total_minutes += line.minutes()
+        #print("\n")
 
-        root = ex.root()
-        if not root in data:
-            data[root] = [0,0,0,0,0,0,100]
-
-        if not root in exstats:
-            exstats[root] = [0]
-
-        data[root][0] += 1
-        data[root][1] += line.rep_count()
-        data[root][2] += line.inol()
-        data[root][3] += line.total_weight()
-        data[root][4] += line.avg_set_percent()
-
-        if data[root][5] < line.max_set_percent():
-            data[root][5] = line.max_set_percent()
-
-        if data[root][6] > line.min_set_percent():
-            data[root][6] = line.min_set_percent()
-
-        #print("{}".format(line.set_percent_list()))
-    """
-
-    stats = Statistics(lines)
-
-    #print("INOL and reps")
-    padding = indent * "  "
-    for ex, d in stats.data.items():
-        count = d['count']
-        rep = d['rep-count']
-        inol = d['inol']
-        weight = d['total-weight']
-        avg_percent = d['avg-set-percent']
-        max_set_percent = d['max-set-percent']
-        min_set_percent = d['min-set-percent']
-
-        inol_indicator = ""
-        if inol > float(sessions) * 1.33:
-            inol_indicator = "(high)"
-        if inol < float(sessions) * 0.8:
-            inol_indicator = "(low)"
-
-        if avg_percent > 0:
-            percent = "{:2.0f}%, min: {:2.0f}% max: {:2.0f}%".format(avg_percent, min_set_percent, max_set_percent)
-        else:
-            percent = "         -            "
-        if inol > 0:
-            print("{}{} => {:3d} reps {:4.2f} ton ({}) -> INOL {:3.2f} {}".format(
-                padding, ex, rep, weight/1000.0, percent, inol, inol_indicator))
-        else:
-            print("{}{} => {:3d} reps {:4.2f} ton ({})".format(padding, ex, rep, percent, weight/1000.0))
+    h = int(total_minutes / 60)
+    m = int(total_minutes)
+    if h > 0:
+        m = int(total_minutes%60)
+        print("ca {} timmar {} minuter".format(h, m))
+    else:
+        print("ca {} minuter".format(m))
 
 
-def print_stats(stats, indent=0):
+def print_stats_ex(stats, ex, indent=0, csv=False):
+    if not ex in stats.data:
+        #print("ex not in stats.data:", ex)
+        return
+    d = stats.data[ex]['total']
+
     padding = indent * "   "
-    for ex, d in stats.data.items():
-        count = d['count']
-        rep = d['rep-count']
-        inol = d['inol']
-        weight = d['total-weight']
-        avg_percent = d['avg-set-percent']
-        max_set_percent = d['max-set-percent']
-        min_set_percent = d['min-set-percent']
+    minutes = int(d['minutes'])
+    #print("print_stats_ex:", ex, "with minutes=", minutes)
+    count = d['count']
+    rep = d['rep-count']
+    inol = d['inol']
+    weight = d['weight']
+    avg_percent = d['avg-set-percent']
+    max_set_percent = d['max-set-percent']
+    min_set_percent = d['min-set-percent']
 
-        inol_indicator = ""
-        if inol > float(len(stats.sessions)) * 1.33:
-            inol_indicator = "(high)"
-        if inol < float(len(stats.sessions)) * 0.8:
-            inol_indicator = "(low)"
+    if avg_percent == 0:
+        avg_percent = ""
+    else:
+        avg_percent = "{}".format(int(avg_percent))
 
+    if max_set_percent == 0:
+        max_set_percent = ""
+    else:
+        max_set_percent = "{}".format(int(max_set_percent))
+
+    if min_set_percent == 0:
+        min_set_percent = ""
+    else:
+        min_set_percent = "{}".format(int(min_set_percent))
+
+    inol_indicator = ""
+    if inol > float(len(stats.sessions)) * 1.33:
+        inol_indicator = "(high)"
+    if inol < float(len(stats.sessions)) * 0.8:
+        inol_indicator = "(low)"
+    if inol == 0:
+        inol = ""
+    else:
+        inol = "{:3.2f}".format(inol)
+    ton = weight/1000.0
+    if weight == 0:
+        ton = ""
+    else:
+        ton = "{:3.2f}".format(ton)
+
+    if csv:
+        padding = "> " * indent
+        print("{}{}#{}#{}#{}#{}#{}#{}#{}".format(padding, str(ex).strip(), rep, minutes, inol, ton, avg_percent, min_set_percent, max_set_percent))
+        """
         if avg_percent > 0:
             percent = "{:2.0f}%, min: {:2.0f}% max: {:2.0f}%".format(avg_percent, min_set_percent, max_set_percent)
         else:
@@ -494,8 +795,90 @@ def print_stats(stats, indent=0):
                 padding, ex, rep, weight/1000.0, percent, inol, inol_indicator))
         else:
             print("{}{} => {:3d} reps {:4.2f} ton ({})".format(padding, ex, rep, percent, weight/1000.0))
+              """
+    else:
+
+        if ton:
+            ton += " ton"
+
+        if avg_percent:
+            percent = "{}%, min: {}% max: {}%".format(avg_percent, min_set_percent, max_set_percent)
+        else:
+            percent = "" #"         -            "
+        if inol:
+            print("{}{} => {:3d} reps ({} minuter) {} ({}) -> INOL {} {}".format(
+                padding, ex, rep, minutes, ton, percent, inol, inol_indicator))
+        else:
+            if percent:
+                print("{}{} => {:3d} reps ({} minuter) {} ({})".format(padding, ex, rep, minutes, ton, percent))
+            else:
+                print("{}{} => {:3d} reps ({} minuter)".format(padding, ex, rep, minutes))
+
+def print_stats(stats, indent=0,csv=False):
+    if csv:
+        print("Övning#Reps#Minuter#INOL#Ton#Snitt%#Min%#Max%")
+    total_minutes = 0
+
+    #print(stats.exercises)
+
+    if kb in stats.data:
+        total_minutes += stats.data[kb]['total']['minutes']
+        #print(kb, stats.data[kb]['minutes'])
+        print_stats_ex(stats, kb, indent, csv)
+        for child in kb.children:
+            print_stats_ex(stats, child, indent+1, csv)
+        printed_roots = {}
+        for related in kb.related:
+            for child in related.children:
+                print_stats_ex(stats, child, indent+1, csv)
+    if bp_tavling in stats.data:
+        total_minutes += stats.data[bp_tavling]['total']['minutes']
+        #print(bp, stats.data[bp]['minutes'])
+        print_stats_ex(stats, bp_tavling, indent, csv)
+        #print("children of bp_tavling:", bp_tavling.children)
+        for child in bp_tavling.children:
+            #print(child, child.name, child.flavor)
+            print_stats_ex(stats, child, indent+1, csv)
+        printed_roots = {}
+        #print("related of bp_tavling:", list(map(lambda x: "{} {}".format(x.name, x.flavor), bp_tavling.related)))
+        for related in bp_tavling.related:
+            if related in stats.exercises: #stats.data:
+                #print("related in stats.data", child, "and parent=", child.parent)
+                print_stats_ex(stats, related, indent+1, csv)
+
+    if ml_tavling in stats.data:
+        total_minutes += stats.data[ml_tavling]['total']['minutes']
+        print_stats_ex(stats, ml_tavling, indent, csv)
+        for child in ml_tavling.children:
+            print_stats_ex(stats, child, indent+1, csv)
+        printed_roots = {}
+        for related in ml_tavling.related:
+            if len(related.children) > 0:
+                for child in related.children:
+                    print_stats_ex(stats, child, indent+1, csv)
+            else:
+                print_stats_ex(stats, related, indent+1, csv)
+
+    """
+    for ex, d in stats.data.items():
+        minutes = d['minutes']
+        total_minutes += minutes
+        minutes = int(minutes)
+
+        if ex == kb or ex == ml or ex == bp:
+            continue
+
+        print_stats_ex(stats, ex, d, indent, csv)
+    """
 
 
+    h = int(total_minutes / 60)
+    m = int(total_minutes)
+    if h > 0:
+        m = int(total_minutes%60)
+        print("ca {} timmar {} minuter".format(h, m))
+    else:
+        print("ca {} minuter".format(m))
 
 
 
