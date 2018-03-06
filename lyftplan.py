@@ -136,6 +136,12 @@ class Line(object):
         self.print_mode = Line.PRINT_MODE_KG
         self.output_type = Line.OUTPUT_TYPE_READABLE
 
+    def copy(self):
+        line = Line(self.exercise, self.note, list(self.sets))
+        line.print_mode = self.print_mode
+        line.output_type = self.output_type
+        return line
+
     def _str_readable(self):
         strsets = ", ".join([self._set2str(s) for s in self.sets])
         inol = self.inol()
@@ -345,9 +351,10 @@ class Line(object):
 #
 ##############################################################
 
-kb = KB("hög stång, bälte", reps={1 : (110, "2017-11-11")})
+kb_tavling = KB("tävling", reps={1 : (110, "2017-11-11")})
 bp_tavling = BP("tävling", reps={1 : (65, "2018-02-24")})
 ml_tavling = ML("tävling", reps={1 : (130, "2018-01-20")})
+
 bp = BP("pekfinger, stopp", parent=bp_tavling, reps={1 : (130, "2018-01-20")})
 sumomark = ML("semisumo", ml_tavling)
 rygg = Rygg("")
@@ -362,10 +369,10 @@ smalmark = ML("smal", ml_tavling, reps={1 : (130, "2018-01-20")})
 klotsving = Rumpa("klotsving", rumpa, related=ml_tavling)
 enbensmark = Rumpa("enbensmark", rumpa, related=ml_tavling)
 
-kbhs = KB("hög stång (utan bälte)", parent=kb, reps={1 : (85, "2017-11-11")})
-bredboj = KB("bredböj", kb, reps={1 : (70, "2017-11-11")})
+kb = KB("hög stång (utan bälte)", parent=kb_tavling, reps={1 : (85, "2017-11-11")})
+bredboj = KB("bredböj", parent=kb_tavling, reps={1 : (70, "2017-11-11")})
 
-negativa_rh = Rygg("Negativa RH", rygg, related=bp_tavling)
+negativa_rh = Rygg("Negativa RH", rygg, related=bp_tavling, time=1)
 latsdrag = Rygg("latsdrag", rygg, related=bp_tavling)
 raka_latsdrag = Rygg("raka latsdrag", rygg, related=bp_tavling)
 rygglyft = Rygg("rygglyft", rygg, related=ml_tavling)
@@ -494,8 +501,10 @@ class Statistics(object):
     def __init__(self, what):
         if type(what) == Session:
             self.sessions = [what]
+            #print("session stats:, count sessions:", len(self.sessions))
         elif type(what) == Week:
             self.sessions = [what[i] for i in range(len(what))]
+            #print("week stats:, count sessions:", len(self.sessions))
         elif type(what) == Cycle:
             self.sessions = []
             for week in what:
@@ -503,7 +512,23 @@ class Statistics(object):
 
         self.date = what.date
         self.session_count = len(self.sessions)
-        self.lines = [line for sess in self.sessions for line in sess.lines]
+        lines = [line for sess in self.sessions for line in sess.lines]
+        #        print("count lines:", len(lines))
+
+        #
+        # Merge lines:
+        #
+        # e.g. two kbhs i the same sesssion
+        # but also for having two sessions.
+        #
+        line_exercise = {}
+        for line in lines:
+            if not line.exercise in line_exercise:
+                line_exercise[line.exercise] = line.copy()
+            else:
+                line_exercise[line.exercise].sets.extend(line.sets)
+
+        self.lines = [line for ex, line in line_exercise.items()]
 
         self.data = {}
         self.exercises = set()
@@ -821,6 +846,7 @@ def print_stats(stats, indent=0,csv=False):
 
     #print(stats.exercises)
 
+    """
     if kb in stats.data:
         total_minutes += stats.data[kb]['total']['minutes']
         #print(kb, stats.data[kb]['minutes'])
@@ -831,21 +857,39 @@ def print_stats(stats, indent=0,csv=False):
         for related in kb.related:
             for child in related.children:
                 print_stats_ex(stats, child, indent+1, csv)
-    if bp_tavling in stats.data:
-        total_minutes += stats.data[bp_tavling]['total']['minutes']
-        #print(bp, stats.data[bp]['minutes'])
-        print_stats_ex(stats, bp_tavling, indent, csv)
-        #print("children of bp_tavling:", bp_tavling.children)
-        for child in bp_tavling.children:
-            #print(child, child.name, child.flavor)
+    """
+
+    if kb_tavling in stats.data:
+        total_minutes += stats.data[kb_tavling]['total']['minutes']
+        print_stats_ex(stats, kb_tavling, indent, csv)
+        for child in kb_tavling.children:
             print_stats_ex(stats, child, indent+1, csv)
         printed_roots = {}
-        #print("related of bp_tavling:", list(map(lambda x: "{} {}".format(x.name, x.flavor), bp_tavling.related)))
-        for related in bp_tavling.related:
+        for related in kb_tavling.related:
             if related in stats.exercises: #stats.data:
-                #print("related in stats.data", child, "and parent=", child.parent)
                 print_stats_ex(stats, related, indent+1, csv)
 
+    if bp_tavling in stats.data:
+        total_minutes += stats.data[bp_tavling]['total']['minutes']
+        print_stats_ex(stats, bp_tavling, indent, csv)
+        for child in bp_tavling.children:
+            print_stats_ex(stats, child, indent+1, csv)
+        printed_roots = {}
+        for related in bp_tavling.related:
+            if related in stats.exercises: #stats.data:
+                print_stats_ex(stats, related, indent+1, csv)
+
+    if ml_tavling in stats.data:
+        total_minutes += stats.data[ml_tavling]['total']['minutes']
+        print_stats_ex(stats, ml_tavling, indent, csv)
+        for child in ml_tavling.children:
+            print_stats_ex(stats, child, indent+1, csv)
+        printed_roots = {}
+        for related in ml_tavling.related:
+            if related in stats.exercises: #stats.data:
+                print_stats_ex(stats, related, indent+1, csv)
+
+    """
     if ml_tavling in stats.data:
         total_minutes += stats.data[ml_tavling]['total']['minutes']
         print_stats_ex(stats, ml_tavling, indent, csv)
@@ -858,6 +902,7 @@ def print_stats(stats, indent=0,csv=False):
                     print_stats_ex(stats, child, indent+1, csv)
             else:
                 print_stats_ex(stats, related, indent+1, csv)
+    """
 
     """
     for ex, d in stats.data.items():

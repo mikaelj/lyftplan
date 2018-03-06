@@ -31,9 +31,7 @@ Line(ml_sumo, "",                           [(50,5), (60,5), (70,5), (80,3), (85
 Line(rumpa_klotsving, "",                      [(20,10), (24,8)]),
 Line(rygg_lyft, "Tungt",                    [(10,0), (5,10), (10,10), (10,10), (10,10), (10,10)])
 ])
-"""
 
-"""
 pass_c = Session([
 Line(kb_bred, "Långsam ned",                [(30,3), (40,3),(40,3),(40,3),(40,3),(40,3),(40,3),(40,3)]),
 Line(kb_hs, "Fokus: hastighet, fulldjup",   [(50,2), (52.5,2), (55,2), (57.5, 2), (60,2), (65,1), (65,1), (65,1), (65,1), (65,1), (70,1), (70,1), (50,5)]),
@@ -66,14 +64,17 @@ rygg_lyft("Tungt",                            sets("10 5x10 10x10 10x10 10x10 10
 johanna_2018_3_5 = Week([
 Session("""
 enbensmark  Växelvis arm/ben, sträck ut bak | 10 10 10
-kbhs            Kontrollerat, korrekt stil! | 25x5 25x5 25x5 25x5
+kb              Kontrollerat, korrekt stil! | 25x5 25x5 25x5 25x5
 
 tryndrag                                    | 20 15 15
 raka_latsdrag                               | 15 15 15
 bp                                          | 40x8 40x8 45x4 45x4 50x2 50x2 60x1 60x1
+
 sumomark                                    | 40x5 50x5 60x5 60x5 70x5 60x5
 negativa_rh Huvudet över stången            | 1 1 1 1 1 1 1 1 1 1
-kbhs            Kontrollerat, korrekt stil! | 25x5 25x5
+
+kb_tavling      Kontrollerat, korrekt stil! | 25x5 25x5
+
 militarpress                                | 20x8 20x8 20x8
 latsdrag                                    | 20 15 10 10 10
 tricepsrep                                  | 20 15 10 10 10
@@ -97,13 +98,14 @@ def main():
     #print("Vecka 1: {}".format(vecka.date))
     print()
 
+
     for i in range(len(vecka)):
         print("Pass {}: {}".format(i+1, vecka[i].date))
 
         #print_session(vecka[i])
         #print()
-        stats = Statistics(vecka[i])
-        print_stats(stats, indent=1)
+        #stats = Statistics(vecka[i])
+        print_stats(Statistics(vecka[i]), indent=1)
         print()
 
     print("\nVecka:")
@@ -111,15 +113,15 @@ def main():
 
     print("\n=======================================\n")
 
-    print("Pass A:", vecka[0].date)
+    #print("Pass A:", vecka[0].date)
     #print_session(vecka[0], csv=True)
     #print("Pass B\n")
     #print_session(vecka[1], csv=True)
     #print("Pass C\n")
     #print_session(vecka[2], csv=True)
 
-    print("\nStatistik för vecka med start", vecka[0].date)
-    stats = Statistics(vecka)
+    #print("\nStatistik för vecka med start", vecka[0].date)
+    #stats = Statistics(vecka)
     #print_stats(stats,csv=True)
 
 
