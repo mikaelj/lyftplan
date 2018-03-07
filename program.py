@@ -71,15 +71,33 @@ raka_latsdrag                               | 15 15 15
 bp                                          | 40x8 40x8 45x4 45x4 50x2 50x2 60x1 60x1
 
 sumomark                                    | 40x5 50x5 60x5 60x5 70x5 60x5
-negativa_rh Huvudet över stången            | 1 1 1 1 1 1 1 1 1 1
+negativa_rh            Huvudet över stången | 1 1 1 1 1 1 1 1 1 1
 
-kb_tavling      Kontrollerat, korrekt stil! | 25x5 25x5
+kb              Kontrollerat, korrekt stil! | 25x5 25x5
 
 militarpress                                | 20x8 20x8 20x8
 latsdrag                                    | 20 15 10 10 10
 tricepsrep                                  | 20 15 10 10 10
-""")
-], date = (2018,3,5))
+
+"""),
+Session("""
+
+tryndrag                                    | 20 15 15
+sittande_rodd                       Kontakt | 15 15 15
+bp                                          | 40x5 45x5 50x5 55x4 60x2 62.5x2 62.5x2
+raka_latsdrag                       Kontakt | 10 15
+
+enbensmark                                  | 10 10 10 10
+sumomark                                    | 60x5 70x5 80x5 70x5 70x5
+
+negativa_rh                                 | 1 1 1 1 1 1 1 1 1 1
+
+kb                                          | 30x5 30x5 30x5 30x5 30x5 30x5 30x5 30x5
+rygglyft                                    | 10 10
+latsdrag                  Tungt med kontakt | 15 15 15 15
+tricepsrep                                  | 15 15 15
+"""
+)], date = (2018,3,5))
 
 
 
@@ -101,10 +119,6 @@ def main():
 
     for i in range(len(vecka)):
         print("Pass {}: {}".format(i+1, vecka[i].date))
-
-        #print_session(vecka[i])
-        #print()
-        #stats = Statistics(vecka[i])
         print_stats(Statistics(vecka[i]), indent=1)
         print()
 
@@ -113,17 +127,25 @@ def main():
 
     print("\n=======================================\n")
 
-    #print("Pass A:", vecka[0].date)
-    #print_session(vecka[0], csv=True)
-    #print("Pass B\n")
-    #print_session(vecka[1], csv=True)
+    for i in range(len(vecka)):
+        print("Pass {}: {}".format(i+1, vecka[i].date))
+        print_session(vecka[i])
+        print()
+
+    print("\nPass A:", vecka[0].date)
+    print_session(vecka[0], csv=True)
+    print("\nPass B:", vecka[1].date)
+    print_session(vecka[1], csv=True)
     #print("Pass C\n")
     #print_session(vecka[2], csv=True)
 
-    #print("\nStatistik för vecka med start", vecka[0].date)
-    #stats = Statistics(vecka)
-    #print_stats(stats,csv=True)
+    print("\nStatistik för vecka med start", vecka[0].date)
+    stats = Statistics(vecka)
+    print_stats(stats,csv=True)
 
+    print()
+
+    print_pr(stats)
 
 if __name__ == '__main__':
     main()

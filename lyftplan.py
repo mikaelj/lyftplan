@@ -135,11 +135,13 @@ class Line(object):
         self.sets = sets
         self.print_mode = Line.PRINT_MODE_KG
         self.output_type = Line.OUTPUT_TYPE_READABLE
+        self.session = None
 
     def copy(self):
         line = Line(self.exercise, self.note, list(self.sets))
         line.print_mode = self.print_mode
         line.output_type = self.output_type
+        line.session = self.session
         return line
 
     def _str_readable(self):
@@ -355,7 +357,7 @@ kb_tavling = KB("tävling", reps={1 : (110, "2017-11-11")})
 bp_tavling = BP("tävling", reps={1 : (65, "2018-02-24")})
 ml_tavling = ML("tävling", reps={1 : (130, "2018-01-20")})
 
-bp = BP("pekfinger, stopp", parent=bp_tavling, reps={1 : (130, "2018-01-20")})
+bp = BP("pekfinger, stopp", parent=bp_tavling, reps={1 : (65, "2018-01-20")})
 sumomark = ML("semisumo", ml_tavling)
 rygg = Rygg("")
 rumpa = Rumpa("")
@@ -376,6 +378,7 @@ negativa_rh = Rygg("Negativa RH", rygg, related=bp_tavling, time=1)
 latsdrag = Rygg("latsdrag", rygg, related=bp_tavling)
 raka_latsdrag = Rygg("raka latsdrag", rygg, related=bp_tavling)
 rygglyft = Rygg("rygglyft", rygg, related=ml_tavling)
+sittande_rodd = Rygg("sittande rodd", rygg, related=bp_tavling)
 
 pinpress = BP("pinpress", bp, reps={1: (60, "2018-01-01")})
 catapult = BP("Catapult", bp, reps={1: (90, "2018-01-01")})
@@ -424,6 +427,8 @@ class Session(object):
         if date != None:
             date = datetime.date(*date)
         self.date = date
+        for line in lines:
+            line.session = self
 
     def __len__(self):
         return len(self.lines)
@@ -540,6 +545,20 @@ class Statistics(object):
 
             self.exercises.add(ex)
 
+            # calculate max weights for different reps
+            prs = {}
+            linedate = None
+            if line.session:
+                linedate = line.session.date
+            for aset in line.sets:
+                if len(aset) == 2:
+                    w, r = aset
+                    if not r in prs:
+                        prs[r] = [w, linedate]
+                    if prs[r][0] < w:
+                        prs[r][0] = w
+
+            #print("Calculating for exercise", ex, ex.name, ex.flavor)
             data[ex] = {'self': {
                             'count': 1,
                             'rep-count': line.rep_count(),
@@ -548,7 +567,8 @@ class Statistics(object):
                             'avg-set-percent': line.avg_set_percent(),
                             'max-set-percent': line.max_set_percent(),
                             'min-set-percent': line.min_set_percent(),
-                            'minutes': line.minutes()},
+                            'minutes': line.minutes(),
+                            'prs': prs},
 
                         'total': {
                             'count': 1,
@@ -561,10 +581,10 @@ class Statistics(object):
                             'minutes': line.minutes()}
                        }
 
-
         for line in self.lines:
             root = line.exercise.root()
             if not root in data:
+                #print("Calculating for root", root, root.name, root.flavor)
                 data[root] = {'self': {
                                 'count': 1,
                                 'rep-count': line.rep_count(),
@@ -926,52 +946,16 @@ def print_stats(stats, indent=0,csv=False):
         print("ca {} minuter".format(m))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def print_pr(stats):
+    print("PRs:")
+    for ex in stats.data:
+        if not 'prs' in stats.data[ex]['self']:
+            continue
+        prs = stats.data[ex]['self']['prs']
+        if not prs:
+            continue
+        b = list(zip(list(prs.keys()), list(prs.values())))
+        b.sort(key=lambda x: x[0])
+        print(ex, ", ".join("{} x {} ({})".format(b[0], a, b[1]) for a,b in b))
 
 
