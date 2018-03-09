@@ -49,7 +49,7 @@ kb                                          | 40x5 40x10 45x10
 
 sumomark                                    | 55x5 65x5 75x5 75x5 75x5 75x5 75x5
 
-pinpress                                    | 40x3 45x3 50x3 55x3 55x3 55x3
+pinpress                                    | 30x10 40x5 45x3 50x3 55x3 55x3 55x3
 
 klotsving                                   | 16x20 16x20 16x20
 tricepsrep                                  | 20 20 20 20 20
