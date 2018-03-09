@@ -3,9 +3,6 @@
 
 from lyftplan import *
 
-###########################################################################################
-
-
 johanna_2018_3_5 = Week([
 Session("""
 enbensmark  Växelvis arm/ben, sträck ut bak | 10 10 10
@@ -23,10 +20,8 @@ kb              Kontrollerat, korrekt stil! | 25x5 25x5
 militarpress                                | 20x8 20x8 20x8
 latsdrag                                    | 20 15 10 10 10
 tricepsrep                                  | 20 15 10 10 10
-
 """),
 Session("""
-
 tryndrag                                    | 20 15 15
 sittande_rodd                       Kontakt | 15 15 15
 bp                                          | 40x5 45x5 50x5 55x4 60x2 62.5x2 62.5x2
@@ -41,20 +36,140 @@ kb                                          | 30x5 30x5 30x5 30x5 30x5 30x5 30x5
 rygglyft                                    | 10 10
 latsdrag                  Tungt med kontakt | 15 15 15 15
 tricepsrep                                  | 15 15 15
-"""
-)], date = (2018,3,5))
+"""),
+Session("""
+tryndrag                                    | 20 15 15
+raka_latsdrag                       Kontakt | 15 15 15
+sittande_rodd                       Kontakt | 15 15 15
+negativa_rh                                 | 1 1 1 1 1 1 1 1 1 1
 
+enbensmark                                  | 10 10 10 10
+kb_fram                                     | 30x5 35x5 40x5 45x5
+kb                                          | 40x5 40x10 45x10
 
+sumomark                                    | 55x5 65x5 75x5 75x5 75x5 75x5 75x5
 
-#
-# Totalt antal ton, eller kanske åtminstone reps, kan räknas i related-övningen som en separat klump.
-#
+pinpress                                    | 40x3 45x3 50x3 55x3 55x3 55x3
+
+klotsving                                   | 16x20 16x20 16x20
+tricepsrep                                  | 20 20 20 20 20
+""")
+], date = (2018,3,5))
+
+cyberman_18_2 = Cycle([johanna_2018_3_5], date=(2018,2,26))
+
+current = cyberman_18_2
 
 #
 # App
 #
 def main():
-    test_sets()
+
+    a = """
+	   ╔Ω╗
+	  [●_●]
+	  ╔╠ ╣╗  C-Y-B-E-R-M-A-N 18.2
+	  ╜╟ ╢╙
+	   ╝ ╚"""
+
+    a = """
+                                   (&##%&%,                                  
+                                *#  *#&&&&(. *&                                
+            .................//#, @@@%, .,&@@. @*,,                            
+       *@%*.,,              ., # (@@       /@& *( %               /../&&.      
+      &(    ,,              ., / &@@       /@@ ./ %               /     %%     
+     (#   .&(///////////////%%% ,@@@%     .@@@* %%&////////////////(&    &*    
+     ##///&.               .#* *@@&(@.    ##%@@/ .%*                .#///%/    
+     #*   #              %/  #@*%   *&   .&    %#&. .%*             .*   #/    
+     #*   #            &, ,@*   &    &*  %/   ./   %%  (/           .*   #/    
+     #*   #          *%  &,     &     (&&*    **     %#  %          .*   #/    
+     #*   #        .%. %@@      #.            (.     /@@# ,#        .*   #/    
+     #*   #       *( ,@@@@(     /*            %      @@@@@. (       .*   #/    
+     #*   #   %&&&( /@./@@@     ,(            %     #@@@*.@% (%%%(  ,*   #/    
+     #*   # (,(  / %@.  &@@/    .%            #     @@@#  ,@# *  (/.,*   #/    
+     #*   #(. ( / /@(   (@@@     &           ,/    (@@@/   ,@, , ( ,(*   #/    
+     #*   #&  ( , @&.   @@@@%    &           /,   ,@@@@&    @( ( (  @*   #/    
+     &/...%@/ ( , @&   *@@/ .&,  (.          %.  #%  /@@,    ( ( #@/...%(    
+     @    * %.( , @&   &@      ,#(*          &(%.      @%    ( (,(..   .&    
+    (/    * %.( , @&  .@            ,/#%%#/,            @    ( (*(..    %,   
+    ,&    * &.( , @&  **  (@@@@&                &@@@@(  *,   ( (*(..    @    
+     ,@,  * &.( , @&  #  #@@@@@@@              @@@@@@@#  (  &% ( (*(..  *@.    
+         .# &.( , @&  /  ,@@@@@@#              #@@@@@@,  (  && ( (*(.(,.       
+           %% ( , @& .,  #,,##/                  *##,*#  (  && ( ( &/          
+          ,&  ( , @&  (*                                //  && ( (  %          
+          .@. ( , @%    ,&.                           %.    && ( ( ,#          
+            @*( , @*     #%&,                       &%(     (& ( (((           
+              /%* (      *& ,@.                   #( #,      ( ##*             
+               .& (      .@                   .&   &       ( &               
+                 #%       @    #@              *%    &       &/                
+                  ,%.     &.   (@%            ,@#    %      &.                 
+                    #*    #*   /@@*..........,@@/   .(    (&                   
+                     ,%   *(   *@@#,,,,,,,,,.(@@*   /,   &,                    
+                      %.  .%   .@@,          ,@@,   #   .&                     
+                       ,&. &   .@@.           @@.   % ,@*                      
+                          #&@,  @@            @@  .&&%                         
+                             .@&            &@#&.                            
+                                .,(%&@@@@@@@*.                               
+
+	"""
+
+    b = """
+                    Exterminate!
+                   /
+              ___
+      D>=G==='   '.
+            |======|
+            |======|
+        )--/]IIIIII]
+           |_______|
+           C O O O D
+          C O  O  O D
+         C  O  O  O  D
+         C__O__O__O__D
+        [_____________] """
+
+
+
+    print(a)
+
+    print("""
+====================================================
+          S E S S I O N S
+====================================================""")
+
+    for i in range(len(current[0])):
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nPass {}: {}\n".format(i+1, current[0][i].date))
+        print_session(current[0][i])
+        print("------------------------------------")
+        print_stats(Statistics(current[0][i]))
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print()
+
+    print("""
+====================================================
+          T R A I N I N G   W E E K
+====================================================""")
+    for week in current.weeks:
+        print("{}".format(week.date))
+        print_stats(Statistics(week))
+        print()
+
+    print("""
+====================================================
+          T R A I N I N G   C Y C L E   {}
+====================================================""".format(current.date))
+
+    print_stats(Statistics(current), print_children=False)
+
+    print("""
+====================================================
+          M A X   L I F T S
+====================================================""")
+    print_pr(Statistics(current))
+
+    import sys
+    sys.exit(0)
+
 
     vecka = johanna_2018_3_5
 
@@ -77,12 +192,13 @@ def main():
         print_session(vecka[i])
         print()
 
+
     print("\nPass A:", vecka[0].date)
     print_session(vecka[0], csv=True)
     print("\nPass B:", vecka[1].date)
     print_session(vecka[1], csv=True)
-    #print("Pass C\n")
-    #print_session(vecka[2], csv=True)
+    print("Pass C\n")
+    print_session(vecka[2], csv=True)
 
     print("\nStatistik för vecka med start", vecka[0].date)
     stats = Statistics(vecka)

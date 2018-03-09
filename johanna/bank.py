@@ -20,15 +20,18 @@ enbensmark = Rumpa("enbensmark", rumpa, related=ml_tavling)
 
 kb = KB("hög stång (utan bälte)", parent=kb_tavling, reps={1 : (85, "2017-11-11")})
 bredboj = KB("bredböj", parent=kb_tavling, reps={1 : (70, "2017-11-11")})
+kb_fram = KB("fram (utan bälte)", parent=kb_tavling, reps={1 : (70, "2017-11-11")})
+benspark = KB("benspark", related=kb_tavling, time=1.5)
 
-negativa_rh = Rygg("Negativa RH", rygg, related=bp_tavling, time=1)
+negativa_rh = Rygg("Negativa RH", rygg, related=bp_tavling, time=1.2)
 latsdrag = Rygg("latsdrag", rygg, related=bp_tavling)
 raka_latsdrag = Rygg("raka latsdrag", rygg, related=bp_tavling)
 rygglyft = Rygg("rygglyft", rygg, related=ml_tavling)
 sittande_rodd = Rygg("sittande rodd", rygg, related=bp_tavling)
 
-pinpress = BP("pinpress", bp, reps={1: (60, "2018-01-01")})
-catapult = BP("Catapult", bp, reps={1: (90, "2018-01-01")})
+pinpress = BP("pinpress", bp_tavling, reps={1: (60, "2018-01-01")})
+catapult = BP("Catapult", bp_tavling, reps={1: (90, "2018-01-01")})
+bpfu = BP("FU, lill, stopp", bp_tavling, reps={1: (60, "2018-01-01")})
 
 tricepsrep = Armar("tricepsrep", armar, related=bp_tavling, time=1.5)
 

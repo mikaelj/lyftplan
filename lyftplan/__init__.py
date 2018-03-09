@@ -560,7 +560,7 @@ class Statistics(object):
         for line in self.lines:
             root = line.exercise.root()
             if not root in data:
-                #print("Calculating for root", root, root.name, root.flavor)
+                #print("Calculating and processing children for root", root, root.name, root.flavor)
                 data[root] = {'self': {
                                 'count': 1,
                                 'rep-count': line.rep_count(),
@@ -586,6 +586,7 @@ class Statistics(object):
             # Related: only rep-count and minutes
             # Children: Everything else.
             #
+            #print("- children: ", ["{} ({})".format(e.name, e.flavor) for e in root.children])
             for child in root.children:
                 if not child in self.exercises:
                     continue
@@ -633,6 +634,7 @@ class Statistics(object):
 
         # Process root data
         for key, value in data.items():
+            #print("key", key, "total:", data[key]['total'])
             data[key]['total']['avg-set-percent'] /= data[key]['total']['count']
 
         """
@@ -716,7 +718,7 @@ def sets(spec):
     return wrs
 
 def test_sets():
-    print("Running automatic tests")
+    #print("Running automatic tests")
     assert sets("30x3 40x3 40x3") == [(30,3), (40,3), (40,3)], sets("30x3 40x3 40x3")
     assert sets("30x3-5 40x3 40x3-5 40x3") == [(30,3,5), (40,3), (40,3,5), (40,3)], "error 2"
     assert sets("30 20 20") == [(30,), (20,), (20,)], "error 3"
@@ -835,7 +837,7 @@ def print_stats_ex(stats, ex, indent=0, csv=False):
             else:
                 print("{}{} => {:3d} reps ({} minuter)".format(padding, ex, rep, minutes))
 
-def print_stats(stats, indent=0,csv=False):
+def print_stats(stats, indent=0,csv=False,print_children=True):
     if csv:
         print("Övning#Reps#Minuter#INOL#Ton#Snitt%#Min%#Max%")
     total_minutes = 0
@@ -861,32 +863,36 @@ def print_stats(stats, indent=0,csv=False):
     if kb_tavling in stats.data:
         total_minutes += stats.data[kb_tavling]['total']['minutes']
         print_stats_ex(stats, kb_tavling, indent, csv)
-        for child in kb_tavling.children:
-            print_stats_ex(stats, child, indent+1, csv)
-        printed_roots = {}
-        for related in kb_tavling.related:
-            if related in stats.exercises: #stats.data:
-                print_stats_ex(stats, related, indent+1, csv)
+
+        if print_children:
+            for child in kb_tavling.children:
+                print_stats_ex(stats, child, indent+1, csv)
+            printed_roots = {}
+            for related in kb_tavling.related:
+                if related in stats.exercises: #stats.data:
+                    print_stats_ex(stats, related, indent+1, csv)
 
     if bp_tavling in stats.data:
         total_minutes += stats.data[bp_tavling]['total']['minutes']
         print_stats_ex(stats, bp_tavling, indent, csv)
-        for child in bp_tavling.children:
-            print_stats_ex(stats, child, indent+1, csv)
-        printed_roots = {}
-        for related in bp_tavling.related:
-            if related in stats.exercises: #stats.data:
-                print_stats_ex(stats, related, indent+1, csv)
+        if print_children:
+            for child in bp_tavling.children:
+                print_stats_ex(stats, child, indent+1, csv)
+            printed_roots = {}
+            for related in bp_tavling.related:
+                if related in stats.exercises: #stats.data:
+                    print_stats_ex(stats, related, indent+1, csv)
 
     if ml_tavling in stats.data:
         total_minutes += stats.data[ml_tavling]['total']['minutes']
         print_stats_ex(stats, ml_tavling, indent, csv)
-        for child in ml_tavling.children:
-            print_stats_ex(stats, child, indent+1, csv)
-        printed_roots = {}
-        for related in ml_tavling.related:
-            if related in stats.exercises: #stats.data:
-                print_stats_ex(stats, related, indent+1, csv)
+        if print_children:
+            for child in ml_tavling.children:
+                print_stats_ex(stats, child, indent+1, csv)
+            printed_roots = {}
+            for related in ml_tavling.related:
+                if related in stats.exercises: #stats.data:
+                    print_stats_ex(stats, related, indent+1, csv)
 
     """
     if ml_tavling in stats.data:
@@ -926,7 +932,6 @@ def print_stats(stats, indent=0,csv=False):
 
 
 def print_pr(stats):
-    print("PRs:")
     for ex in stats.data:
         if not 'prs' in stats.data[ex]['self']:
             continue

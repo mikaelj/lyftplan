@@ -14,6 +14,8 @@ def main():
         print("usage: {} folder".format(sys.argv[0]))
         sys.exit(1)
 
+    lyftplan.test_sets()
+
     lifter = sys.argv[1]
 
     bank = import_module('{}.bank'.format(lifter))
