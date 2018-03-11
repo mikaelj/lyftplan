@@ -182,14 +182,14 @@ class Line(object):
 
 
         line1 = reps
-        line2 = None
+        line2 = ""
         if weights:
             line1 = weights
             line2 = reps
 
         s = "{exercise}#{line1}".format(exercise=str(self.exercise).strip(), rep_count=self.rep_count(), line1=line1, avg_set_weight=self.avg_set_weight(), avg_set_percent=self.avg_set_percent(), inoltext=inoltext, root=self.exercise.root())
 
-        if line2:
+        if line2 or self.note:
             s += "\n{note}#{line2}".format(note=self.note,line2=line2)
         return s
 
@@ -557,6 +557,7 @@ class Statistics(object):
                             'minutes': line.minutes()}
                        }
 
+        processed_children = {}
         for line in self.lines:
             root = line.exercise.root()
             if not root in data:
@@ -590,6 +591,11 @@ class Statistics(object):
             for child in root.children:
                 if not child in self.exercises:
                     continue
+
+                if child in processed_children:
+                    continue
+
+                processed_children[child] = True
 
                 #print("CHILDREN: Adding total of", child, "min", data[child]['self']['minutes'], "reps", data[child]['self']['rep-count'], "to", root)
 
