@@ -19,6 +19,7 @@ klotsving = Rumpa("klotsving", rumpa, related=ml_tavling)
 enbensmark = Rumpa("enbensmark", rumpa, related=ml_tavling, time=2.6)
 
 kb = KB("hög stång (utan bälte)", parent=kb_tavling, reps={1 : (85, "2017-11-11")}, time=3)
+kb_pin = KB("pinböj (hög stång, utan bälte)", parent=kb_tavling, reps={1 : (70, "2017-11-11")}, time=3)
 bredboj = KB("bredböj", parent=kb_tavling, reps={1 : (70, "2017-11-11")})
 kb_fram = KB("fram (utan bälte)", parent=kb_tavling, reps={1 : (70, "2017-11-11")})
 benspark = KB("benspark", related=kb_tavling, time=1.5)
