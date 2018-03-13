@@ -106,9 +106,9 @@ class Rumpa(Exercise):
         if time is None:
             self.minutes_per_set = 2.5
 
-class Rygg(Exercise):
+class Core(Exercise):
     def __init__(self, flavor, parent=None, related=None, reps={}, time=None):
-        super().__init__("Rygg", flavor, parent, related, reps, time)
+        super().__init__("Bål", flavor, parent, related, reps, time)
         if time is None:
             self.minutes_per_set = 2.5
 
@@ -628,20 +628,33 @@ class Statistics(object):
                     data[root]['total']['min-set-percent'] = line.min_set_percent()
                 """
 
-
             for related in root.related:
                 if not related in self.exercises:
                     continue
 
-                #print("RELATED: Adding total of", related, "min", data[related]['self']['minutes'], "reps", data[related]['self']['rep-count'], "to", root)
+
+                #
+                # TODO: Add related to their parent _and_ this exercise.
+                #
+                # e.g.: 
+                #
+                if related in processed_children:
+                    continue
+
+                processed_children[related] = True
+
+                print("RELATED: Adding total of", related, "min", data[related]['self']['minutes'], "reps", data[related]['self']['rep-count'], "to", root)
 
                 data[root]['total']['rep-count'] += data[related]['self']['rep-count']
                 data[root]['total']['minutes'] += data[related]['self']['minutes']
 
         # Process root data
         for key, value in data.items():
-            #print("key", key, "total:", data[key]['total'])
-            data[key]['total']['avg-set-percent'] /= data[key]['total']['count']
+            count = data[key]['total']['count']
+            if count == 0:
+                print("ZERO COUNT: key", key, "total:", data[key]['total'])
+                count = 1
+            data[key]['total']['avg-set-percent'] /= count
 
         """
         # Produce statistics for all roots
@@ -848,85 +861,36 @@ def print_stats(stats, indent=0,csv=False,print_children=True):
         print("Övning#Reps#Minuter#INOL#Ton#Snitt%#Min%#Max%")
     total_minutes = 0
 
-    #print(stats.exercises)
+    def print_part(part):
+        nonlocal total_minutes
+        if part in stats.data:
+            total_minutes += stats.data[part]['total']['minutes']
+            print_stats_ex(stats, part, indent, csv)
 
-    """
-    if kb in stats.data:
-        total_minutes += stats.data[kb]['total']['minutes']
-        #print(kb, stats.data[kb]['minutes'])
-        print_stats_ex(stats, kb, indent, csv)
-        for child in kb.children:
-            print_stats_ex(stats, child, indent+1, csv)
-        printed_roots = {}
-        for related in kb.related:
-            for child in related.children:
-                print_stats_ex(stats, child, indent+1, csv)
-    """
+            if print_children:
+                for child in part.children:
+                    print_stats_ex(stats, child, indent+1, csv)
+                printed_roots = {}
+                for related in part.related:
+                    if related in stats.exercises: #stats.data:
+                        print_stats_ex(stats, related, indent+1, csv)
+
 
     kb_tavling = g_module.__dict__.get('kb_tavling')
     bp_tavling = g_module.__dict__.get('bp_tavling')
     ml_tavling = g_module.__dict__.get('ml_tavling')
-    if kb_tavling in stats.data:
-        total_minutes += stats.data[kb_tavling]['total']['minutes']
-        print_stats_ex(stats, kb_tavling, indent, csv)
+    core = g_module.__dict__.get('core')
+    rumpa = g_module.__dict__.get('rumpa')
+    axlar = g_module.__dict__.get('axlar')
+    armar = g_module.__dict__.get('armar')
 
-        if print_children:
-            for child in kb_tavling.children:
-                print_stats_ex(stats, child, indent+1, csv)
-            printed_roots = {}
-            for related in kb_tavling.related:
-                if related in stats.exercises: #stats.data:
-                    print_stats_ex(stats, related, indent+1, csv)
-
-    if bp_tavling in stats.data:
-        total_minutes += stats.data[bp_tavling]['total']['minutes']
-        print_stats_ex(stats, bp_tavling, indent, csv)
-        if print_children:
-            for child in bp_tavling.children:
-                print_stats_ex(stats, child, indent+1, csv)
-            printed_roots = {}
-            for related in bp_tavling.related:
-                if related in stats.exercises: #stats.data:
-                    print_stats_ex(stats, related, indent+1, csv)
-
-    if ml_tavling in stats.data:
-        total_minutes += stats.data[ml_tavling]['total']['minutes']
-        print_stats_ex(stats, ml_tavling, indent, csv)
-        if print_children:
-            for child in ml_tavling.children:
-                print_stats_ex(stats, child, indent+1, csv)
-            printed_roots = {}
-            for related in ml_tavling.related:
-                if related in stats.exercises: #stats.data:
-                    print_stats_ex(stats, related, indent+1, csv)
-
-    """
-    if ml_tavling in stats.data:
-        total_minutes += stats.data[ml_tavling]['total']['minutes']
-        print_stats_ex(stats, ml_tavling, indent, csv)
-        for child in ml_tavling.children:
-            print_stats_ex(stats, child, indent+1, csv)
-        printed_roots = {}
-        for related in ml_tavling.related:
-            if len(related.children) > 0:
-                for child in related.children:
-                    print_stats_ex(stats, child, indent+1, csv)
-            else:
-                print_stats_ex(stats, related, indent+1, csv)
-    """
-
-    """
-    for ex, d in stats.data.items():
-        minutes = d['minutes']
-        total_minutes += minutes
-        minutes = int(minutes)
-
-        if ex == kb or ex == ml or ex == bp:
-            continue
-
-        print_stats_ex(stats, ex, d, indent, csv)
-    """
-
+    print_part(kb_tavling)
+    print_part(bp_tavling)
+    print_part(ml_tavling)
+    print_part(core)
+    print_part(rumpa)
+    print_part(axlar)
+    print_part(armar)
 
     h = int(total_minutes / 60)
     m = int(total_minutes)

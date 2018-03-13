@@ -68,7 +68,7 @@ kb_pin                                      | 30x4 35x4 40x4 45x4
 raka_latsdrag                               | 15 15
 bpfu                Lillfinger, stopp       | 30x5 40x5 50x3
 bp                                          | 50x3 55x3 60x3 50x5 50x5
-tryndrag                                    | 15 15 15
+hangande_rodd                               | 10 10 10
 sumomark       Maxat grepp, inget bälte     | 40x5 50x5 60x5 70x5 80x1 80x1 80x1 80x1 80x1
 sittande_rodd                   Kontakt     | 10 10 10 10 10
 militarpress                                | 25x5 25x5 25x5
@@ -158,13 +158,16 @@ def main():
           S E S S I O N S
 ====================================================""")
 
-    for i in range(len(current[0])):
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nPass {}: {}\n".format(i+1, current[0][i].date))
-        print_session(current[0][i])
-        print("------------------------------------")
-        print_stats(Statistics(current[0][i]))
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print()
+    for week in current.weeks:
+        for i in range(len(week)):
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nPass {}: {}\n".format(i+1, week[i].date))
+            print_session(week[i])
+            print("------------------------------------")
+            print_session(week[i],csv=True)
+            print("------------------------------------")
+            print_stats(Statistics(week[i]))
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            print()
 
     print("""
 ====================================================

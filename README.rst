@@ -18,3 +18,12 @@ Dataformat
     # skall benspark-reps och set räknas med? saknar (ju) vikt.
     # låt bli att räkna med i snittintensitet om de saknar vikt, men ha med som set/reps?
     ben1 = ("Benspark", kb
+
+
+Javascript
+=============
+http://www.chartjs.org/samples/latest/charts/bar/stacked.html
+http://www.chartjs.org/samples/latest/charts/line/multi-axis.html
+
+Bubbeldiagram för att se hur stora olika övningar är i olika perioder? http://www.chartjs.org/samples/latest/scriptable/bubble.html
+
