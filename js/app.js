@@ -114,12 +114,10 @@ function main() {
 function print_prs(stats) {
     for (var ex of stats.data.keys()) {
         //if not 'prs' in stats.data[ex]['self']:
-        if (!stats.data.get(ex)['self'])
-            continue
 
         // prs is a Map
-        var prs = stats.data.get(ex)['self']['prs']
-        if (!prs || prs.size == 0)
+        var prs = stats.data.get(ex).prs
+        if (prs.size == 0)
             continue
 
         //b = list(zip(list(prs.keys()), list(prs.values())))

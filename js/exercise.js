@@ -567,6 +567,19 @@ class Cycle {
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
+class ExerciseStatistics {
+    constructor(count=0, rep_count=0, inol=0, weight=0, avg_set_percent=0, max_set_percent=0, min_set_percent=0, minutes=0, prs=null) {
+        this.count = count
+        this.rep_count = rep_count
+        this.inol = inol
+        this.weight = weight
+        this.avg_set_percent = avg_set_percent
+        this.max_set_percent = max_set_percent
+        this.min_set_percent = min_set_percent
+        this.minutes = minutes
+        this.prs = prs ? prs : new Map()
+    }
+}
 
 class Statistics {
     /*
@@ -619,10 +632,12 @@ class Statistics {
 
         this.lines = [...line_exercise.values()]
         this.data = new Map()
-        this.exercises = new Set()
         var data = this.data
+        
+        this.exercises = new Set() // only non-root exercises
+        this.roots = new Set() // only root exercises
 
-        this.roots = []
+        // Gather roots, create default stats
         var processed_roots = new Map()
         for (var line of this.lines) {
             var root = line.exercise.root()
@@ -631,12 +646,16 @@ class Statistics {
 
             processed_roots.set(root, true)
 
-            this.roots.push(root)
+            this.roots.add(root)
+
+            data.set(root, new ExerciseStatistics())
         }
 
-        // Produce statistics for all exercises, without adding in children.
+        // Produce statistics for all non-root exercises
         for (var line of this.lines) {
             var ex = line.exercise
+            if (this.roots.has(ex))
+                continue
 
             this.exercises.add(ex)
 
@@ -657,66 +676,22 @@ class Statistics {
                     }
                 }
             }
-            //#print("Calculating for exercise", ex, ex.name, ex.flavor)
-            data.set(ex, {'self': {
-                            'count': 1,
-                            'rep-count': line.rep_count(),
-                            'inol': line.inol(),
-                            'weight': line.total_weight(),
-                            'avg-set-percent': line.avg_set_percent(),
-                            'max-set-percent': line.max_set_percent(),
-                            'min-set-percent': line.min_set_percent(),
-                            'minutes': line.minutes(),
-                            'prs': prs},
+            let exstats = new ExerciseStatistics(1, line.rep_count(), line.inol(), line.total_weight(), 
+                line.avg_set_percent(), line.max_set_percent(), line.min_set_percent(), 
+                line.minutes(), prs)
 
-                        'total': {
-                            'count': 1,
-                            'rep-count': line.rep_count(),
-                            'inol': line.inol(),
-                            'weight': line.total_weight(),
-                            'avg-set-percent': line.avg_set_percent(),
-                            'max-set-percent': line.max_set_percent(),
-                            'min-set-percent': line.min_set_percent(),
-                            'minutes': line.minutes()}
-                       })
+            data.set(ex, exstats)
         }
         console.log("-------------------------")
 
         var processed_children = new Map()
         for (var line of this.lines) {
             let root = line.exercise.root()
-            if (!data.has(root)) {
-                //print("Calculating and processing children for root", root, root.name, root.flavor)
-                data.set(root, {
-                    /*
-                    'self': {
-                                'count': 1,
-                                'rep-count': line.rep_count(),
-                                'inol': line.inol(),
-                                'weight': line.total_weight(),
-                                'avg-set-percent': line.avg_set_percent(),
-                                'max-set-percent': line.max_set_percent(),
-                                'min-set-percent': line.min_set_percent(),
-                                'minutes': line.minutes()},
-                                */
-
-                            'total': {
-                                'count': 0,//#,1,
-                                'rep-count': 0,//#,line.rep_count(),
-                                'inol': 0,//#,line.inol(),
-                                'weight': 0,//#,line.total_weight(),
-                                'avg-set-percent': 0,//#,line.avg_set_percent(),
-                                'max-set-percent': 0,//#,line.max_set_percent(),
-                                'min-set-percent': 0,//#,line.min_set_percent(),
-                                'minutes': 0}//,line.minutes()
-                           })
-            }
 
             /* 
              * Related: only rep-count and minutes
              * Children: Everything else.
             */
-            //print("- children: ", ["{} ({})".format(e.name, e.flavor) for e in root.children])
             for (var child of root.children) {
                 if (!this.exercises.has(child))
                     continue
@@ -729,25 +704,20 @@ class Statistics {
                 var rv = data.get(root)
                 var cv = data.get(child)
 
-                console.log("Add self stats of {} to total of root {}".format(child, root))
-
+                //console.log("Add self {} stats ({} minutes) of {} to total of root {}".format(cv, cv.minutes, child, root))
                 //console.log("CHILDREN: Adding total of", child, "min", data[child]['self']['minutes'], "reps", data[child]['self']['rep-count'], "to", root)
 
-                rv['total']['count'] += cv['self']['count']
-                rv['total']['rep-count'] += cv['self']['rep-count']
-                rv['total']['inol'] += cv['self']['inol']
-                rv['total']['weight'] += cv['self']['weight']
-                rv['total']['minutes'] += cv['self']['minutes']
+                rv.count += cv.count
+                rv.rep_count += cv.rep_count
+                rv.inol += cv.inol
+                rv.weight += cv.weight
+                rv.minutes += cv.minutes
 
-                if (rv['total']['max-set-percent'] < cv['self']['max-set-percent'])
-                    rv['total']['max-set-percent'] = cv['self']['max-set-percent']
+                if (rv.max_set_percent < cv.max_set_percent)
+                    rv.max_set_percent = cv.max_set_percent
 
-                if (rv['total']['min-set-percent'] > cv['self']['min-set-percent'])
-                    rv['total']['min-set-percent'] = cv['self']['min-set-percent']
-
-
-                // TODO: write rv back?
-                // data.set(root, rv)
+                if (rv.min_set_percent > cv.min_set_percent)
+                    rv.min_set_percent = cv.min_set_percent
             }
 
             for (var related of root.related) {
@@ -767,13 +737,11 @@ class Statistics {
                 var rv = data.get(root)
                 var sv = data.get(related)
 
-                //print("RELATED: Adding total of", related, "min", data[related]['self']['minutes'], "reps", data[related]['self']['rep-count'], "to", root)
+                //console.log("RELATED: Adding total of", related, "min", data[related]['self']['minutes'], "reps", data[related]['self']['rep-count'], "to", root)
 
-                rv['total']['rep-count'] += sv['self']['rep-count']
-                rv['total']['minutes'] += sv['self']['minutes']
-
-                // TODO: write rv back?
-                // data.set(root, rv)
+                //console.log("related {} add {} min to root {}".format(related, rv.minutes, root)
+                rv.rep_count += sv.rep_count
+                rv.minutes += sv.minutes
             }
 
         }
@@ -783,47 +751,10 @@ class Statistics {
         this.minutes = 0
         for (var root of this.roots) {
             var dk = data.get(root)
-            var count = dk['total']['count']
-            /*
-            if (count == 0) {
-                console.error("ERROR: ZERO COUNT: key", key, "total:", dk['total'])
-                count = 1
-            }
-            */
-            
-            // TODO: this is wrong?
-            dk['total']['avg-set-percent'] /= count
 
-            this.minutes += dk['total']['minutes']
-            //console.log("{}: adding minutes: {}".format(root, dk['total']['minutes']))
+            dk.avg_set_percent /= dk.count
+            this.minutes += dk.minutes
         }
-        /*
-        var processed_roots = new Map()
-        //console.log("----------------------------\nProcessing roots")
-        for (var [key, value] of data.entries()) {
-            var root = key.root()
-            if (processed_roots.has(root))
-                continue
-
-            processed_roots.set(root, true)
-
-            var dk = data.get(root)
-            var count = dk['total']['count']
-            if (count == 0) {
-                console.error("ERROR: ZERO COUNT: key", key, "total:", dk['total'])
-                count = 1
-            }
-            
-            // TODO: this is wrong?
-            dk['total']['avg-set-percent'] /= count
-
-            this.minutes += dk['total']['minutes']
-            //console.log("{}: adding minutes: {}".format(root, dk['total']['minutes']))
-
-            // TODO: write dk back?
-            // data.set(key, dk)
-        }
-        */
     }
 }
 
