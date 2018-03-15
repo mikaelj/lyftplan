@@ -67,7 +67,7 @@ class Exercise {
 
     max1rm() {
         if (this.reps == null)
-            return [0, ""]
+            return 0
         let max1 = this.reps.get(1, [0,''])
         return max1[0]
     }
@@ -250,7 +250,7 @@ class Line {
     }
 
     max_set_weight() {
-        return Math.max(this.sets.map(s => this.weight(s)))
+        return Math.max(...[...this.sets.map(s => this.weight(s))])
     }
 
     max_set_percent() {
@@ -258,7 +258,10 @@ class Line {
         if (max1rm <= 0)
             return 0
 
-        return Math.max(this.sets.map(s => this.weight(s)*100.0/max1rm))
+        var nums = [...this.sets.map(s => this.weight(s)*100.0/max1rm)]
+        var p =  Math.max(...nums)
+        //console.log("max1rm: {}, max set percent: {} from {}".format(max1rm, p, nums))
+        return p
     }
 
     min_set_percent() {
@@ -272,7 +275,7 @@ class Line {
         //values = [self.weight(s)*100.0/max1rm for s in self.sets]
         //print("min:",self, values, "=", min(values))
 
-        return Math.min(values)
+        return Math.min(...values)
     }
 
     set_percent_list() {
@@ -568,8 +571,8 @@ class Cycle {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 class ExerciseStatistics {
-    constructor(count=0, rep_count=0, inol=0, weight=0, avg_set_percent=0, max_set_percent=0, min_set_percent=0, minutes=0, prs=null) {
-        this.count = count
+    constructor(exercise, rep_count=0, inol=0, weight=0, avg_set_percent=0, max_set_percent=0, min_set_percent=100, minutes=0, prs=null) {
+        this.exercise = exercise
         this.rep_count = rep_count
         this.inol = inol
         this.weight = weight
@@ -578,6 +581,17 @@ class ExerciseStatistics {
         this.min_set_percent = min_set_percent
         this.minutes = minutes
         this.prs = prs ? prs : new Map()
+
+        this.count = 0
+    }
+
+    toString() {
+        if (this.weight > 0) {
+            return "{}: {} minutes, {} kg, {} reps, inol {}, intensity min/avg/max: {}/{}/{}</li>".format(
+                    this.exercise, Math.trunc(this.minutes), this.weight, this.rep_count, this.inol.toFixed(2), Math.trunc(this.min_set_percent), Math.trunc(this.avg_set_percent), Math.trunc(this.max_set_percent))
+        } else {
+            return "{}: {} minutes, {} reps".format(this.exercise, Math.trunc(this.minutes), this.rep_count)
+        }
     }
 }
 
@@ -648,7 +662,7 @@ class Statistics {
 
             this.roots.add(root)
 
-            data.set(root, new ExerciseStatistics())
+            data.set(root, new ExerciseStatistics(root))
         }
 
         // Produce statistics for all non-root exercises
@@ -676,13 +690,15 @@ class Statistics {
                     }
                 }
             }
-            let exstats = new ExerciseStatistics(1, line.rep_count(), line.inol(), line.total_weight(), 
+
+            // Collect statistics per exercise (for root, this includes children)
+            let exstats = new ExerciseStatistics(ex, line.rep_count(), line.inol(), line.total_weight(), 
                 line.avg_set_percent(), line.max_set_percent(), line.min_set_percent(), 
                 line.minutes(), prs)
 
             data.set(ex, exstats)
         }
-        console.log("-------------------------")
+        //console.log("-------------------------")
 
         var processed_children = new Map()
         for (var line of this.lines) {
@@ -707,12 +723,13 @@ class Statistics {
                 //console.log("Add self {} stats ({} minutes) of {} to total of root {}".format(cv, cv.minutes, child, root))
                 //console.log("CHILDREN: Adding total of", child, "min", data[child]['self']['minutes'], "reps", data[child]['self']['rep-count'], "to", root)
 
-                rv.count += cv.count
+                rv.count += 1 
                 rv.rep_count += cv.rep_count
                 rv.inol += cv.inol
                 rv.weight += cv.weight
                 rv.minutes += cv.minutes
 
+                rv.avg_set_percent += cv.avg_set_percent
                 if (rv.max_set_percent < cv.max_set_percent)
                     rv.max_set_percent = cv.max_set_percent
 
@@ -738,8 +755,8 @@ class Statistics {
                 var sv = data.get(related)
 
                 //console.log("RELATED: Adding total of", related, "min", data[related]['self']['minutes'], "reps", data[related]['self']['rep-count'], "to", root)
-
                 //console.log("related {} add {} min to root {}".format(related, rv.minutes, root)
+                //
                 rv.rep_count += sv.rep_count
                 rv.minutes += sv.minutes
             }

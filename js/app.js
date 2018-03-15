@@ -88,25 +88,35 @@ function main() {
             let hours = Math.trunc(stats.minutes/60)
             let minutes = Math.trunc(stats.minutes%60)
             s += "<h3>Session {} ({} hours {} minutes)</h3>".format(session.date.ymdString(), hours, minutes)
-            //console.info(stats)
            
-            print_prs(stats)
+            //print_prs(stats)
+            console.log("-------------------------")
+            print_stats(stats)
 
-            s += "<ul>";
+            // session & stats
+            s += "<b>Session</b><ul>"
+
+            // session
             for (var line of week.sessions[0].lines) {
                 s += "<li>{}</li>".format(line.toString())
             }
             s += "</ul>"
+
+            // stats
+            s += "<b>Stats</b><ul>"
+
+            for (var root of stats.roots) {
+                let d = stats.data.get(root)
+                s += "<li>{}</li>".format(d)
+                /*
+                s += "<li>{}: {} kg, {} reps, inol {}, intensity min/avg/max: {}/{}/{}</li>".format(
+                    d.exercise, d.weight, d.rep_count, d.inol.toFixed(2), Math.trunc(d.min_set_percent), Math.trunc(d.avg_set_percent), Math.trunc(d.max_set_percent))
+                */
+            }
+            
+            s += "</ul>"
         }
     }
-
-    var array = ["foo", "bar"]
-    var map = new Map()
-    map.set("hej", array)
-    console.log("0 = {}, 1 = {}".format(map.get("hej")[0], map.get("hej")[1]))
-    map.get("hej")[1] = "baz"
-    console.log("0 = {}, 1 = {}".format(map.get("hej")[0], map.get("hej")[1]))
-    console.info(array)
 
     document.getElementById('sessions').innerHTML = s
 }
@@ -131,7 +141,8 @@ function print_prs(stats) {
 }
 
 function print_stats(stats, print_chtildren=true) {
-    for (var root in stats.roots) {
+    for (var root of stats.roots) {
+        console.info(stats.data.get(root))
     }
 }
 
