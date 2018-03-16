@@ -1,10 +1,38 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script src="vue.js"></script>
         <script type="module" src="app.js"></script>
         <title>index.html</title></head>
     <body>
-        <div id="sessions"/>
+
+        <div id="app">
+            <!-- <stats-item :param="data"></stats-item> -->
+
+            <!-- TODO
+                * Display an entire week?
+            -->
+
+            <select v-model="selectedSession" @change="sessionChanged">
+                <option selected="selected" disabled value"">Välj pass</option>
+                <option v-for="session of sessions" v-bind:value="session.index">
+                    {{ session.title }}
+                </option>
+            </select>
+
+            <h1>{{ foo }}</h1>
+
+            <div v-html="sessionData"></div>
+        </div>
+
+        <!--
+        <template id="stats-template">
+            <div>
+            <h1>test header</h1>
+            <div v-html="param.html"></div>
+            </div>
+        </template>
+        -->
 
     </body>
 </html>

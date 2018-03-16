@@ -77,14 +77,73 @@ tricepsrep                                  | 20 15 10 10
 
 
 function main() {
+
+    // Components must be defined before 'new Vue'
+    /*
+    var statsItem = Vue.component('stats-item', {
+        template: "#stats-template",
+        props : ['param'],
+        data: function() { return this }
+    })
+    */
+
+    var data = {
+        selectedSession: '',
+        sessions: [],
+        foo: "",
+        sessionData: "",
+        };
+
+    var app = new Vue({
+        el: '#app',
+        data : data,
+        methods: {
+            sessionChanged: function (event) {
+                console.log("session changed: {} is {}".format(event.target.selectedIndex, event.target.value))
+                var index = event.target.value
+                console.info(this.sessions)
+                for (var item of this.sessions) {
+                    console.log("index: {}, title: {}".format(item.index, item.title))
+                    if (item.index == index) {
+                        var session = item.session
+                        var stats = new E.Statistics(session)
+                        let hours = Math.trunc(stats.minutes/60)
+                        let minutes = Math.trunc(stats.minutes%60)
+
+                        this.foo = "Session {} ({} hours {} minutes)".format(session.date.ymdString(), hours, minutes)
+
+                        var s = "<ul>"
+                        // session
+                        for (var line of session.lines) {
+                            s += "<li>{}</li>".format(line.toString())
+                        }
+                        s += "</ul>"
+
+                        this.sessionData = s
+                        break
+                    }
+                }
+
+            }
+        },
+        computed: {},
+        ready: function() {}
+        //components: {statsItem: statsItem}
+    })
+
+
     var s = "<h1>Cycle <i>{}</i> ({})</h1>".format(cycle.title, cycle.date.ymdString())
 
+    var counter = 0
+    var week_counter = 0
     for (var week of cycle.weeks) {
+        week_counter += 1
         s += "<h2>Week {}</h2>".format(week.date.ymdString())
 
+        var session_counter = 0
         for (var session of week.sessions) {
+            session_counter += 1
             var stats = new E.Statistics(session)
-
             let hours = Math.trunc(stats.minutes/60)
             let minutes = Math.trunc(stats.minutes%60)
             s += "<h3>Session {} ({} hours {} minutes)</h3>".format(session.date.ymdString(), hours, minutes)
@@ -97,10 +156,17 @@ function main() {
             s += "<b>Session</b><ul>"
 
             // session
-            for (var line of week.sessions[0].lines) {
+            for (var line of session.lines) {
                 s += "<li>{}</li>".format(line.toString())
             }
             s += "</ul>"
+
+            data.sessions.push({
+                'index': counter,
+                'title': "Week {}: session {} ({})".format(week_counter, session_counter, session.date.ymdString()),
+                'session': session
+            })
+            counter += 1
 
             // stats
             s += "<b>Stats</b><ul>"
@@ -118,7 +184,8 @@ function main() {
         }
     }
 
-    document.getElementById('sessions').innerHTML = s
+
+    //document.getElementById('sessions').innerHTML = s
 }
 
 function print_prs(stats) {
