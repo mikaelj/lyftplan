@@ -1,7 +1,8 @@
 'use strict'; 
 import * as E from '../lib/exercise.js'
 
-export var cycle = new E.Cycle("Cyberman 18.2", [
+
+export var cycles = [new E.Cycle("Cyberman 18.2", [
 new E.Week([
 new E.Session(`
 enbensmark  Växelvis arm/ben, sträck ut bak | 10 10 10
@@ -100,4 +101,5 @@ sittande_rodd Tungt med kontakt             | 10 10 10
 `)
 ])
 ], [2018,3,5])
+] // cycles
 

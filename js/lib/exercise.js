@@ -548,8 +548,8 @@ class Week {
 
 
 class Cycle {
-    constructor(title, weeks, date=null) {
-        this.title = title
+    constructor(name, weeks, date=null) {
+        this.name = name
         this.weeks = weeks
         var d = date
         if (d != null) {

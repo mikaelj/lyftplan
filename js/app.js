@@ -36,10 +36,18 @@ function main(program) {
 
             B: undefined,
             P: undefined,
+
+            cycles: [],
+            selectedCycle: undefined,
         },
 
         mounted: function() {},
         watch: {
+            selectedCycle: function() {
+                console.log("selected cycle: " + this.selectedCycle)
+                this.initializeCycle()
+            },
+
             selectedLifter: function(lifter) {
                 import("./{}/program.js".format(lifter))
                     .then((program) => {
@@ -48,7 +56,9 @@ function main(program) {
                             .then((bank) => {
                                 this.B = bank
                                 E.register(bank)
-                                program.cycle.resolve()
+                                for (var cycle of program.cycles)  {
+                                    cycle.resolve()
+                                }
                                 this.initializeLifter(program)
                             })
                     })
@@ -250,9 +260,20 @@ function main(program) {
         ready: function() {},
         //components: {statsItem: statsItem}
         methods: {
-            initializeLifter: function(program) {
-                var cycle = program.cycle
-
+            initializeLifter(program) {
+                var cycles = []
+                var counter = 0
+                for (var c of program.cycles) {
+                    cycles.push({'index': counter, 'name': "{} ({})".format(c.name, c.date.ymdString()), 'cycle': c})
+                    counter += 1
+                }
+                this.cycles = cycles
+                document.getElementById("pickCycle").style.display = "block"
+            },
+            initializeCycle() {
+                var cycle = this.cycles[this.selectedCycle].cycle
+                console.info(this.cycles)
+                console.log("cycle: "+cycle.toString())
                 var counter = 0
                 var week_counter = 0
                 for (var week of cycle.weeks) {
@@ -880,7 +901,7 @@ function main(program) {
 
 function print_session(cycle) {
 
-    var s = "<h1>Cycle <i>{}</i> ({})</h1>".format(cycle.title, cycle.date.ymdString())
+    var s = "<h1>Cycle <i>{}</i> ({})</h1>".format(cycle.name, cycle.date.ymdString())
 
     var counter = 0
     var week_counter = 0

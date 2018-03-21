@@ -15,7 +15,17 @@
                     {{ lifter }}
                 </option>
             </select>
+
+            <div style='display: none' id="pickCycle">
+            Välj program: <select style='font-size: 20px' v-model="selectedCycle"> <!-- @change="sessionChanged"> -->
+                <option v-for="cycle of cycles" v-bind:value="cycle.index">
+                    {{ cycle.name }}
+                </option>
+            </select>
             </div>
+            </div>
+            
+
             <hr/>
 
             <div id="content" style="display: none">
