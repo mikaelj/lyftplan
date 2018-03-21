@@ -186,14 +186,23 @@ class Line {
             return this._ToStringCSV()
     }
 
-    _toStringReadable() {
-        var strsets = this.sets.map(s => this._set2str(s)).join(", ")
+    setsStringArray() {
+        return this.sets.map(s => this._set2str(s))
+    }
+
+    inolString() {
         var inol = this.inol()
         var inoltext = "{}".format(inol.toFixed(2))
         if (inol <= 0) {
             inol = 0
             inoltext = ""
         }
+        return inoltext
+    }
+
+    _toStringReadable() {
+        var strsets = this.setsStringArray().join(", ")
+        var inoltext = this.inolString()
         return "{} ({}): {}".format(this.exercise, inoltext, strsets)
         /*    
             
@@ -608,6 +617,11 @@ class Statistics {
     Save date for line, too?
     */
     constructor(what) {
+        // TODO: don't assume it's a list of sessions...
+        if (what instanceof Array) {
+            this.sessions = what
+            console.log("what instanceof Array")
+        }
         if (what instanceof Session) {
             this.sessions = [what]
         }
@@ -629,6 +643,11 @@ class Statistics {
         // total number of minutes
         this.minutes = 0
 
+        this.exercises = new Set() // only non-root exercises
+        this.roots = new Set() // only root exercises
+        this.data = new Map() // Exercxse : ExerciseStatistics
+
+
         //
         // Merge lines:
         //
@@ -645,12 +664,8 @@ class Statistics {
         }
 
         this.lines = [...line_exercise.values()]
-        this.data = new Map()
         var data = this.data
         
-        this.exercises = new Set() // only non-root exercises
-        this.roots = new Set() // only root exercises
-
         // Gather roots, create default stats
         var processed_roots = new Map()
         for (var line of this.lines) {

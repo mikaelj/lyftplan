@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script src="Chart.2.7.2.min.js"></script>
         <script src="vue.js"></script>
         <script type="module" src="app.js"></script>
         <title>index.html</title></head>
@@ -13,14 +14,66 @@
                 * Display an entire week?
             -->
 
-            <select v-model="selectedSession" @change="sessionChanged">
+            <!--
+            <fieldset><legend>Alternative 1</legend>
+            <select multiple v-model="selectedSessions"> 
                 <option selected="selected" disabled value"">Välj pass</option>
                 <option v-for="session of sessions" v-bind:value="session.index">
                     {{ session.title }}
                 </option>
             </select>
 
+            <select multiple v-model="selectedWeeks"> 
+                <option selected="selected" disabled value"">Välj veckor</option>
+                <option v-for="week of weeks" v-bind:value="week.index">
+                    {{ week.title }}
+                </option>
+            </select>
+            </fieldset>
+            -->
+
+            <fieldset style='display: inline'><legend>Per-exercise over time</legend>
+                <input type='checkbox' id='kb' value='kb' v-model='checkedExercises'/> <label for='kb'>Knäböj</label>
+                <input type='checkbox' id='bp' value='bp' v-model='checkedExercises'/> <label for='bp'>Bänkpress</label>
+                <input type='checkbox' id='ml' value='ml' v-model='checkedExercises'/> <label for='ml'>Marklyft</label>
+                <input type='checkbox' id='total' value='total' v-model='checkedExercises'/> <label for='total'>Total</label>
+                <hr/>
+                <input type='checkbox' id='volume' value='volume' v-model='checkedTypes'/> <label for='volume'>Volym (repetitionsantal)</label>
+                <br/>
+                <input type='checkbox' id='intensity' value='intensity' v-model='checkedTypes'/> <label for='intensity'>Intensitet (snitt-% per set)</label>
+                <hr/>
+
+                <select multiple v-model="selectedWeeksExercise"> <!-- @change="sessionChanged"> -->
+                    <option selected="selected" disabled value"">Välj veckor</option>
+                    <option v-for="week of weeks" v-bind:value="week.index">
+                        {{ week.title }}
+                    </option>
+                </select>
+            </fieldset>
+
+
+
+            <fieldset style='display: inline'><legend>Exercise frequency</legend>
+                <select multiple v-model="selectedWeeksFrequency"> <!-- @change="sessionChanged"> -->
+                    <option selected="selected" disabled value"">Välj veckor</option>
+                    <option v-for="week of weeks" v-bind:value="week.index">
+                        {{ week.title }}
+                    </option>
+                </select>
+                <br/>
+
+                <input type='checkbox' id='other' value='other' v-model='frequencyHides'/> <label for='other'>Dölj övriga</label>
+                <input type='checkbox' id='main' value='main' v-model='frequencyHides'/> <label for='main'>Dölj huvudlyft</label>
+            </fieldset>
+
+
             <h1>{{ foo }}</h1>
+
+            <b>Session(s)</b>
+            <canvas id="sessionChart" height="100"></canvas>
+
+            <b>Week(s)</b>
+            <canvas id="weekChart" height="100"></canvas>
 
             <div v-html="sessionData"></div>
         </div>

@@ -451,7 +451,7 @@ class Cycle(object):
                 for session in week:
                     if not session.date:
                         session.date = sessiondate
-                    sessiondate += datetime.timedelta(days=1)
+                    sessiondate += datetime.timedelta(days=2)
 
                 weekdate += datetime.timedelta(days=7)
 

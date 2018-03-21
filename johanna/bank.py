@@ -52,6 +52,8 @@ armar = Armar("")
 
 # parent = ml, but intensity calculated against sumo's 1rm
 smalmark = ML("smal", ml_tavling, reps={1 : (130, "2018-01-20")})
+kronlyft = ML("kronlyft", ml_tavling, reps={1 : (130, "2018-01-20")})
+rakmark = ML("raka", ml_tavling, reps={10 : (60, "2018-01-20")})
 klotsving = Rumpa("klotsving", rumpa)
 enbensmark = Rumpa("enbensmark", rumpa, time=2.6)
 
@@ -73,7 +75,8 @@ bpfu = BP("FU, lill, stopp", bp_tavling, reps={1: (60, "2018-01-01")})
 
 tricepsrep = Armar("tricepsrep", armar, time=1.5)
 
-militarpress = Axlar("Militärpress", axlar, reps={1: (35, "2017-10-10")}, time=3)
+hantelflugor_omvanda = Axlar("omvända hantelflugor", axlar, time=1.5)
+militarpress = Axlar("militärpress", axlar, reps={1: (35, "2017-10-10")}, time=3)
 
 hangande_rodd = Axlar("hängande rodd", axlar)
 tryndrag = Axlar("tryndrag", axlar, time=1.5)
