@@ -1,6 +1,6 @@
 'use strict';
 
-import "./utils.js"
+import "../deps/utils.js"
 
 export { KB, BP, ML, Rumpa, Core, Axlar, Armar, 
     Line, Session, Week, Cycle,
@@ -144,17 +144,13 @@ class Armar extends Exercise {
 
 var g_module = null
 function register(module) {
-
     g_module = new Map()
-    for (var i in Object.values(module)) {
-        let k = Object.keys(module)[i]
-        let o = Object.values(module)[i]
-        let proto = o instanceof Exercise //o.prototype
-        if (proto) {
-            //console.log("k = {}, o = {}, name {}, prototype = {}".  format(k, o, o.name, proto))
+    for (let [k, o] of Object.entries(module)) {
+        if (o instanceof Exercise) {
             g_module.set(k, o)
         }
     }
+    //console.info(g_module)
 }
 
 const Line_PRINT_MODE_KG = 0
@@ -503,16 +499,20 @@ class Line {
 
 class Session {
     constructor(lines, date=null) {
-        //console.log(typeof lines)
-        var ls = lines
-        if (typeof lines == "string")
-            ls = Line.instantiateLines(lines)
-
-        this.lines = ls
+        this.lines = lines
         var d = date
         if (d != null)
             d = new Date(date[0], date[1]-1, date[2])
         this.date = d
+    }
+
+    // Late binding since Line.instantiateLines() isn't available until after bank is registered
+    resolve() {
+        var ls = this.lines
+        if (typeof this.lines == "string")
+            ls = Line.instantiateLines(this.lines)
+
+        this.lines = ls
         for (var line of ls) {
             line.session = this
         }
@@ -537,6 +537,11 @@ class Week {
                 }
                 sessiondate.setDate(sessiondate.getDate() + 2)
             }
+        }
+    }
+    resolve() {
+        for (var session of this.sessions) {
+            session.resolve()
         }
     }
 }
@@ -569,6 +574,12 @@ class Cycle {
                 }
                 weekdate.setDate(weekdate.getDate() + 7)
             }
+        }
+    }
+
+    resolve() {
+        for (var week of this.weeks) {
+            week.resolve()
         }
     }
 }

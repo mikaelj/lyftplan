@@ -1,7 +1,5 @@
-'use strict';
-
-import * as E from './exercise.js'
-
+'use strict'; 
+import * as E from '../lib/exercise.js'
 /*
  * Exist only as root exercises. No work done on them.
  */

@@ -1,37 +1,24 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="Chart.2.7.2.min.js"></script>
-        <script src="vue.js"></script>
+        <script src="../deps/Chart.2.7.2.min.js"></script>
+        <script src="../deps/vue.js"></script>
         <script type="module" src="app.js"></script>
         <title>index.html</title></head>
     <body>
 
         <div id="app">
-            <!-- <stats-item :param="data"></stats-item> -->
-
-            <!-- TODO
-                * Display an entire week?
-            -->
-
-            <!--
-            <fieldset><legend>Alternative 1</legend>
-            <select multiple v-model="selectedSessions"> 
-                <option selected="selected" disabled value"">Välj pass</option>
-                <option v-for="session of sessions" v-bind:value="session.index">
-                    {{ session.title }}
+            <div style='font-size: 20px'>
+            Välj lyftare: <select style='font-size: 20px' v-model="selectedLifter"> <!-- @change="sessionChanged"> -->
+                <option selected="selected" disabled value"">Välj lyftare</option>
+                <option v-for="lifter of lifters" v-bind:value="lifter">
+                    {{ lifter }}
                 </option>
             </select>
+            </div>
+            <hr/>
 
-            <select multiple v-model="selectedWeeks"> 
-                <option selected="selected" disabled value"">Välj veckor</option>
-                <option v-for="week of weeks" v-bind:value="week.index">
-                    {{ week.title }}
-                </option>
-            </select>
-            </fieldset>
-            -->
-
+            <div id="content" style="display: none">
             <fieldset style='display: inline'><legend>Per-exercise over time</legend>
                 <input type='checkbox' id='kb' value='kb' v-model='checkedExercises'/> <label for='kb'>Knäböj</label>
                 <input type='checkbox' id='bp' value='bp' v-model='checkedExercises'/> <label for='bp'>Bänkpress</label>
@@ -66,26 +53,18 @@
                 <input type='checkbox' id='main' value='main' v-model='frequencyHides'/> <label for='main'>Dölj huvudlyft</label>
             </fieldset>
 
+            <hr/>
+            </div> <!-- content -->
 
-            <h1>{{ foo }}</h1>
-
-            <b>Session(s)</b>
+            <b>Session(s)</b><br/>
             <canvas id="sessionChart" height="100"></canvas>
 
-            <b>Week(s)</b>
+            <b>Week(s)</b><br/>
             <canvas id="weekChart" height="100"></canvas>
 
             <div v-html="sessionData"></div>
         </div>
 
-        <!--
-        <template id="stats-template">
-            <div>
-            <h1>test header</h1>
-            <div v-html="param.html"></div>
-            </div>
-        </template>
-        -->
 
     </body>
 </html>
