@@ -179,7 +179,7 @@ class Line {
         if (this.output_type == Line_OUTPUT_TYPE_READABLE)
             return this._toStringReadable()
         else
-            return this._ToStringCSV()
+            return this._toStringCSV()
     }
 
     setsStringArray() {
@@ -207,7 +207,43 @@ class Line {
 
     }
     _toStringCSV() {
-        return "CSV"
+        function weightFormat(w) {
+            // format according to integer or float.
+            return "{}".format(w)
+        }
+
+        let setweightreps = this.sets.map(s => this._set2weightreps(s))
+
+        var inol = this.inol()
+        var inoltext = "{}".format(inol)
+        if (inol <= 0) {
+            inol = 0
+            inoltext = ""
+        }
+
+        //reps = "#".join(list(map(lambda x: x[1], setweightreps)))
+        let reps = setweightreps.map(s => s[1]).join("#")
+        var weights = ""
+        //if (any(map(lambda x: x[0] > 0, setweightreps)))
+        if (setweightreps.some(s => s[0] > 0)) {
+            // print second line
+            //weights = "#".join(map(lambda x: _weight_formatter(x[0]), setweightreps))
+            weights = setweightreps.map(x => weightFormat(x[0])).join("#")
+        }
+
+        var line1 = reps
+        var line2 = ""
+        if (weights != "") {
+            line1 = weights
+            line2 = reps
+        }
+
+        var s = "{}#{}".format(this.exercise, line1)
+
+        if (line2 || this.note) {
+            s += "\n{}#{}".format(this.note, line2)
+        }
+        return s
     }
 
     reps(s) {
@@ -631,20 +667,23 @@ class Statistics {
         // TODO: don't assume it's a list of sessions...
         if (what instanceof Array) {
             this.sessions = what
-            console.log("what instanceof Array")
+            //console.log("what instanceof Array")
         }
         if (what instanceof Session) {
             this.sessions = [what]
         }
         else if (what instanceof Week) {
+            // make a copy.
             this.sessions = what.sessions.map(s => s)
         }
         else if (what instanceof Cycle) {
-            this.sessinos = []
+            this.sessions = []
             for (var week in what.weeks) {
                 this.sessions.push(...week.sessions)
             }
         }
+        //console.log("what instanceof? " + (typeof what))
+        //console.log(what)
         this.date = what.date
         var lines = []
         for (var session of this.sessions) {

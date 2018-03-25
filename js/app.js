@@ -13,24 +13,34 @@ function main(program) {
     var app = new Vue({
         el: '#app',
         data : {
+            // Startup
             selectedLifter: "",
             lifters: lifters,
 
             //selectedSession: '',
-            selectedSessions: [],
+            //selectedSessions: [],
+            //selectedWeeks: [],
+
             sessionData: "",
             sessions: [],
 
-            selectedWeeks: [],
-            weeks: [],
 
+            // data per session
             checkedExercises: [],
             selectedWeeksExercise: [],
+            checkedTypes: ["volume", "intensity", "inol"],
 
+            // data per week
+            perWeekCheckedExercises: [],
+            perWeekSelectedWeeks: [],
+            perWeekCheckedTypes: [],
+
+            // exercise frequency
             selectedWeeksFrequency: [],
             frequencyHides: [],
 
-            checkedTypes: ["volume", "intensity"],
+            // shared
+            weeks: [],
 
             foo: "",
 
@@ -43,6 +53,9 @@ function main(program) {
 
         mounted: function() {},
         watch: {
+            /*
+             * Startup
+             */
             selectedCycle: function() {
                 console.log("selected cycle: " + this.selectedCycle)
                 this.initializeCycle()
@@ -64,180 +77,8 @@ function main(program) {
                     })
 
             },
-            selectedSessions: function(vals) {
-                /*
-                 * Print the actual sessions
-                 */
-                var s = ""
-                for (var index of vals) {
-                    var item = this.sessions[index]
 
-                    var session = item.session
-                    var stats = new E.Statistics(session)
-                    let hours = Math.trunc(stats.minutes/60)
-                    let minutes = Math.trunc(stats.minutes%60)
-
-                    s += "<h1>Session {} ({} hours {} minutes)</h1>".format(session.date.ymdString(), hours, minutes)
-
-                    s += "<table width='100%'>"
-                    // session
-                    var row = 0
-                    var lineattribs = ""
-                    var exattribs = ""
-                    for (var line of session.lines) {
-                        row += 1
-                        if (line.exercise instanceof E.KB ||
-                            line.exercise instanceof E.BP ||
-                            line.exercise instanceof E.ML) {
-                            exattribs = "style='font-weight: bold'"
-                        }
-                        else
-                            exattribs = ""
-
-                        s += "<tr {}><td><span {}>{}</span>{}</<td><td>{}</td></tr>".format(lineattribs, exattribs,
-                            line.exercise + "<br/>", "<em>" +line.note + "</em>",
-                            line.setsStringArray().join(", "))
-                        lineattribs = row % 2 == 0 ? "" : "style='background-color: #f0f0f0'"
-                    }
-                    s += "</table>"
-                }
-                this.sessionData = s
-
-                /*
-                 * Chart statistics
-                 */
-                var items = []
-                for (var index of vals) {
-                    var item = this.sessions[index]
-                    items.push(item.session)
-                }
-
-                var stats = new E.Statistics(items)
-
-                var dataReps = []
-                var dataIntensity = []
-                var chartLabels = []
-                
-                for (var e of [this.B.kb_tavling, this.B.bp_tavling, this.B.ml_tavling]) {
-                    if (stats.roots.has(e)) {
-                        var reps = stats.data.get(e).rep_count
-                        var avg_intensity = stats.data.get(e).avg_set_percent
-
-                        dataReps.push(reps)
-                        dataIntensity.push(avg_intensity)
-
-                        chartLabels.push(e.toString())
-                    }
-                }
-
-                sessionChart.data.datasets[0].data = dataReps
-                sessionChart.data.datasets[1].data = dataIntensity
-
-                sessionChart.data.labels = chartLabels
-                sessionChart.update()
-            },
-            selectedWeeks: function(vals) {
-
-                /*
-                 * Chart statistics
-                 */
-                var items = []
-                for (var index of vals) {
-                    var item = this.weeks[index]
-                    console.info(item)
-                    items.push(item)
-                }
-
-                var dataReps = []
-                var dataIntensity = []
-                var chartLabels = []
-                
-                /*
-                 * One sesssion is one data point
-                 * - each data point belongs to three datasets: 0, 3 = kb, 1,4 = bp, 2,5 = ml
-                 */
-                var volumeKb = []
-                var intKb = []
-                var volumeBp = []
-                var intBp = []
-                var volumeMl = []
-                var intMl = []
-                var chartLabels = []
-                
-                for (var item of items) {
-                    for (var session of item.week.sessions) {
-                        console.info(session)
-                        var stats = new E.Statistics(session)
-
-                        chartLabels.push("W{} {}".format(item.index, session.date.ymdString()))
-
-                        // KB
-                        console.info(stats)
-                        var es = stats.data.get(this.B.kb_tavling)
-                        //console.log("KB_tavling")
-                        //console.info(es)
-                        volumeKb.push(es ? es.rep_count : 0)
-                        intKb.push(es ? es.avg_set_percent : 0)
-
-                        var es = stats.data.get(this.B.bp_tavling)
-                        //console.log("BP_tavling")
-                        //console.info(es)
-                        volumeBp.push(es ? es.rep_count : 0)
-                        intBp.push(es ? es.avg_set_percent : 0)
-
-                        var es = stats.data.get(this.B.ml_tavling)
-                        //console.log("ML_tavling")
-                        //console.info(es)
-                        volumeMl.push(es ? es.rep_count : 0)
-                        intMl.push(es ? es.avg_set_percent : 0)
-                    }
-                }
-
-                weekChart.data.datasets[0].data = volumeKb
-                weekChart.data.datasets[0+3].data = intKb
-
-                weekChart.data.datasets[1].data = volumeBp
-                weekChart.data.datasets[1+3].data = intBp
-
-                weekChart.data.datasets[2].data = volumeMl
-                weekChart.data.datasets[2+3].data = intMl
-
-                /*
-                var i = 0
-                for (var _ of volumeKb) {
-                    weekChart.data.datasets[0].bars[i++].fillColor = 'red'
-                    weekChart.data.datasets[0].bars[i++].fillColor = 'green'
-                    weekChart.data.datasets[0].bars[i++].fillColor = 'blue'
-                }
-                */
-
-                weekChart.data.labels = chartLabels
-                weekChart.update()
-                
-                /*
-                for (var e of [B.kb_tavling, B.bp_tavling, B.ml_tavling]) {
-
-                    var stats = new E.Statistics(items)
-                    if (stats.roots.has(e)) {
-                        var reps = stats.data.get(e).rep_count
-                        var avg_intensity = stats.data.get(e).avg_set_percent
-
-                        dataReps.push(reps)
-                        dataIntensity.push(avg_intensity)
-
-                        chartLabels.push(e.toString())
-                    }
-                }
-
-                chart.data.datasets[0].data = dataReps
-                chart.data.datasets[1].data = dataIntensity
-
-                chart.data.labels = chartLabels
-                chart.update()
-                */
-            },
-
-            // Per-exercise over time
+            // data per session
             selectedWeeksExercise: function(vals) {
                 this.updateSelectedWeeksExercise(vals)
             },
@@ -248,7 +89,19 @@ function main(program) {
                 this.updateSelectedWeeksExercise(this.selectedWeeksExercise)
             },
 
-            // Frequency over time
+            // data per week
+            perWeekCheckedExercises: function(vals) {
+                this.updatePerWeekData()
+            },
+            perWeekSelectedWeeks: function(vals) {
+                this.updatePerWeekData()
+            },
+
+            perWeekCheckedTypes: function(vals) {
+                this.updatePerWeekData()
+            },
+
+            // exercise frequency
             selectedWeeksFrequency: function(vals) {
                 this.updateFrequencyExercise(vals)
             },
@@ -296,6 +149,69 @@ function main(program) {
                 }
 
                 document.getElementById("content").style.display = "block"
+
+                this.print_session(cycle)
+            },
+            print_session(cycle) {
+                var s = "<h1>Cycle <i>{}</i> ({})</h1>".format(cycle.name, cycle.date.ymdString())
+
+                var counter = 0
+                var week_counter = 0
+                for (var week of cycle.weeks) {
+                    s += "<h2>Week {}</h2>".format(week.date.ymdString())
+
+                    week_counter += 1
+                    var session_counter = 0
+                    for (var session of week.sessions) {
+                        session_counter += 1
+                        var stats = new E.Statistics(session)
+                        let hours = Math.trunc(stats.minutes/60)
+                        let minutes = Math.trunc(stats.minutes%60)
+                        s += "<h3>Session {} ({} hours {} minutes)</h3>".format(session.date.ymdString(), hours, minutes)
+                       
+                        //print_prs(stats)
+                        //console.log("-------------------------")
+                        print_stats(stats)
+
+                        // session & stats
+                        s += "<b>Session</b><ul>"
+
+                        // session
+                        for (var line of session.lines) {
+                            s += "<li>{}</li>".format(line.toString())
+                        }
+                        s += "</ul>"
+
+                        counter += 1
+
+                        // stats
+                        s += "<b>Stats</b><ul>"
+
+                        for (var root of stats.roots) {
+                            let d = stats.data.get(root)
+                            s += "<li>{}</li>".format(d)
+                            /*
+                            s += "<li>{}: {} kg, {} reps, inol {}, intensity min/avg/max: {}/{}/{}</li>".format(
+                                d.exercise, d.weight, d.rep_count, d.inol.toFixed(2), Math.trunc(d.min_set_percent), Math.trunc(d.avg_set_percent), Math.trunc(d.max_set_percent))
+                            */
+                        }
+                        
+                        s += "</ul>"
+
+                        s += this.csv_from_session(session)
+                    }
+                }
+
+                this.sessionData = s
+            },
+            csv_from_session(session) {
+                var s = "<pre>"
+                for (var line of session.lines) {
+                    line.output_type = E.Line_OUTPUT_TYPE_CSV
+                    s += line.toString() + "\n"
+                }
+                s += "</pre>"
+                return s
             },
             updateSelectedWeeksExercise(vals) {
             /*
@@ -327,17 +243,22 @@ function main(program) {
 
             let displayVolume = this.checkedTypes.findIndex(x => x == "volume") >= 0
             let displayIntensity = this.checkedTypes.findIndex(x => x == "intensity") >= 0
+            let displayInol = this.checkedTypes.findIndex(x => x == "inol") >= 0
 
             //console.log("showing kb? {}, bp? {}, ml? {}, displayTotal? {}, volume? {}, intensity? {}".format(displayKb, displayBp, displayMl, displayTotal, displayVolume, displayIntensity))
 
             var volumeKb = []
             var intKb = []
+            var inolKb = []
             var volumeBp = []
             var intBp = []
+            var inolBp = []
             var volumeMl = []
             var intMl = []
+            var inolMl = []
             var volumeTot = []
             var intTot = []
+            var inolTot = []
             var chartLabels = []
 
             
@@ -350,7 +271,7 @@ function main(program) {
 
                     var volumeTotal = 0
                     var intTotal = 0
-                    var totalCount = 0
+                    var inolTotal = 0
 
                     // KB
                     //console.info(stats)
@@ -358,63 +279,202 @@ function main(program) {
                     console.log("KB_tavling")
                     //console.info(es)
                     volumeKb.push(es ? es.rep_count : 0)
-                    intKb.push(es ? Math.trunc(es.avg_set_percent) : 0)
+                    intKb.push(es ? es.avg_set_percent : 0)
+                    inolKb.push(es ? es.inol : 0)
 
                     volumeTotal += es.rep_count
-                    intTotal += Math.trunc(es.avg_set_percent)
+                    intTotal += es.avg_set_percent
+                    inolTotal += es.inol
 
                     var es = stats.data.get(this.B.bp_tavling)
                     console.log("BP_tavling")
                     //console.info(es)
                     volumeBp.push(es ? es.rep_count : 0)
-                    intBp.push(es ? Math.trunc(es.avg_set_percent) : 0)
+                    intBp.push(es ? es.avg_set_percent : 0)
+                    inolBp.push(es ? es.inol : 0)
 
                     volumeTotal += es.rep_count
-                    intTotal += Math.trunc(es.avg_set_percent)
+                    intTotal += es.avg_set_percent
+                    inolTotal += es.inol
 
                     var es = stats.data.get(this.B.ml_tavling)
                     console.log("ML_tavling")
                     //console.info(es)
                     volumeMl.push(es ? es.rep_count : 0)
-                    intMl.push(es ? Math.trunc(es.avg_set_percent) : 0)
+                    intMl.push(es ? es.avg_set_percent : 0)
+                    inolMl.push(es ? es.inol : 0)
 
                     volumeTotal += es.rep_count
-                    intTotal += Math.trunc(es.avg_set_percent)
+                    intTotal += es.avg_set_percent
+                    inolTotal += es.inol
 
-
-                    intTotal /= 3
+                    intTotal /= 3.0
+                    inolTotal /= 3.0
 
                     volumeTot.push(volumeTotal)
                     intTot.push(intTotal)
+                    inolTot.push(inolTotal)
 
                 }
             }
             let chart = weekExerciseChart
             chart.data.datasets[0].hidden = !displayKb || !displayIntensity
             chart.data.datasets[0+4].hidden = !displayKb || !displayVolume
+            chart.data.datasets[0+8].hidden = !displayKb || !displayInol
 
             chart.data.datasets[1].hidden = !displayBp || !displayIntensity
             chart.data.datasets[1+4].hidden = !displayBp || !displayVolume
+            chart.data.datasets[1+8].hidden = !displayBp || !displayInol
 
             chart.data.datasets[2].hidden = !displayMl || !displayIntensity
             chart.data.datasets[2+4].hidden = !displayMl || !displayVolume
+            chart.data.datasets[2+8].hidden = !displayMl || !displayInol
 
             chart.data.datasets[3].hidden = !displayTotal || !displayIntensity
             chart.data.datasets[3+4].hidden = !displayTotal || !displayVolume
+            chart.data.datasets[3+8].hidden = !displayTotal || !displayInol
 
             chart.data.datasets[0].data = intKb
             chart.data.datasets[0+4].data = volumeKb
+            chart.data.datasets[0+8].data = inolKb
 
             chart.data.datasets[1].data = intBp
             chart.data.datasets[1+4].data = volumeBp
+            chart.data.datasets[1+8].data = inolBp
 
             chart.data.datasets[2].data = intMl
             chart.data.datasets[2+4].data = volumeMl
+            chart.data.datasets[2+8].data = inolMl
 
             chart.data.datasets[3].data = intTot
             chart.data.datasets[3+4].data = volumeTot
+            chart.data.datasets[3+8].data = inolTot
 
             chart.data.labels = chartLabels
+            chart.options.scales.yAxes[1].display = true
+            chart.update()
+            },
+
+            // data per week, e.g. moving average
+            updatePerWeekData() {
+            /*
+             * Chart statistics
+             */
+            var items = []
+            for (var index of this.perWeekSelectedWeeks) {
+                var item = this.weeks[index]
+                //console.info(item)
+                items.push(item)
+            }
+
+            var chartLabels = []
+            
+            /*
+             * One sesssion is one data point
+             * - each data point belongs to three datasets: 0, 3 = kb, 1,4 = bp, 2,5 = ml
+             */
+
+            //console.log("---- checkedExercises:")
+            //console.info(this.checkedExercises)
+
+            let displayKb = this.perWeekCheckedExercises.findIndex(x => x == "kb") >= 0
+            let displayBp = this.perWeekCheckedExercises.findIndex(x => x == "bp") >= 0
+            let displayMl = this.perWeekCheckedExercises.findIndex(x => x == "ml") >= 0
+            let displayTotal = this.perWeekCheckedExercises.findIndex(x => x == "total") >= 0
+            let displayVolume = this.perWeekCheckedTypes.findIndex(x => x == "reps") >= 0
+            let displayWeight = this.perWeekCheckedTypes.findIndex(x => x == "weight") >= 0
+            let displayInol = this.perWeekCheckedTypes.findIndex(x => x == "inol") >= 0
+
+            var volumeKb = []
+            var weightKb = []
+            var inolKb = []
+            var volumeBp = []
+            var weightBp = []
+            var inolBp = []
+            var volumeMl = []
+            var weightMl = []
+            var inolMl = []
+            var volumeTot = []
+            var weightTot = []
+            var inolTot = []
+            var chartLabels = []
+            
+            for (var item of items) {
+                let week = item.week
+                //console.info(session)
+                var stats = new E.Statistics(week)
+
+                chartLabels.push("{}".format(week.date.ymdString()))
+
+                var volumeTotal = 0
+                var weightTotal = 0
+                var inolTotal = 0
+
+                var es = stats.data.get(this.B.kb_tavling)
+                volumeKb.push(es ? es.rep_count : 0)
+                weightKb.push(es ? es.weight/1000.0 : 0)
+                inolKb.push(es ? es.inol : 0)
+                volumeTotal += es ? es.rep_count : 0
+                weightTotal += es ? es.weight : 0 
+                inolTotal += es ? es.inol : 0
+
+                var es = stats.data.get(this.B.bp_tavling)
+                volumeBp.push(es ? es.rep_count : 0)
+                weightBp.push(es ? es.weight/1000.0 : 0)
+                inolBp.push(es ? es.inol : 0)
+                volumeTotal += es ? es.rep_count : 0
+                weightTotal += es ? es.weight : 0 
+                inolTotal += es ? es.inol : 0
+
+                var es = stats.data.get(this.B.ml_tavling)
+                volumeMl.push(es ? es.rep_count : 0)
+                weightMl.push(es ? es.weight/1000.0 : 0)
+                inolMl.push(es ? es.inol : 0)
+                volumeTotal += es ? es.rep_count : 0
+                weightTotal += es ? es.weight : 0 
+                inolTotal += es ? es.inol : 0
+
+                volumeTot.push(volumeTotal)
+                weightTot.push(weightTotal/1000.0)
+                inolTot.push(inolTotal)
+
+            }
+            let chart = weekExerciseChart
+            chart.data.datasets[0].hidden = !displayKb || !displayWeight
+            chart.data.datasets[0+4].hidden = !displayKb || !displayVolume
+            chart.data.datasets[0+8].hidden = !displayKb || !displayInol
+
+            chart.data.datasets[1].hidden = !displayBp || !displayWeight
+            chart.data.datasets[1+4].hidden = !displayBp || !displayVolume
+            chart.data.datasets[1+8].hidden = !displayBp || !displayInol
+
+            chart.data.datasets[2].hidden = !displayMl || !displayWeight
+            chart.data.datasets[2+4].hidden = !displayMl || !displayVolume
+            chart.data.datasets[2+8].hidden = !displayMl || !displayInol
+
+            chart.data.datasets[3].hidden = !displayTotal || !displayWeight
+            chart.data.datasets[3+4].hidden = !displayTotal || !displayVolume
+            chart.data.datasets[3+8].hidden = !displayTotal || !displayInol
+
+            chart.data.datasets[0].data = weightKb
+            chart.data.datasets[0+4].data = volumeKb
+            chart.data.datasets[0+8].data = inolKb
+
+            chart.data.datasets[1].data = weightBp
+            chart.data.datasets[1+4].data = volumeBp
+            chart.data.datasets[1+8].data = inolBp
+
+            chart.data.datasets[2].data = weightMl
+            chart.data.datasets[2+4].data = volumeMl
+            chart.data.datasets[2+8].data = inolMl
+
+            chart.data.datasets[3].data = weightTot
+            chart.data.datasets[3+4].data = volumeTot
+            chart.data.datasets[3+8].data = inolTot
+
+            chart.data.labels = chartLabels
+            //chart.options.scales.yAxes[1].display = false
+            //chart.options.scales.yAxes[1].gridLines.drawBorder = false
             chart.update()
             },
 
@@ -532,6 +592,7 @@ function main(program) {
                 chart.data.datasets[0].backgroundColor = colors
                 chart.data.labels = labels
 
+                chart.options.scales.yAxes[1].display = true
                 chart.update()
             }
         }
@@ -695,7 +756,6 @@ function main(program) {
                 ],
                 borderWidth: 2.5
                 },
-
             ]
         },
         options: {
@@ -740,8 +800,7 @@ function main(program) {
                 fill: false,
                 yAxisID: 'intensity',
                 borderColor: 'rgba(255,99,132,1)',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
+                borderWidth: 1,
                 },
 
                 {
@@ -750,8 +809,7 @@ function main(program) {
                 fill: false,
                 yAxisID: 'intensity',
                 borderColor: 'rgba(55, 152, 80, 1)',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
+                borderWidth: 1,
                 },
                 {
                 label: 'Intensitet marklyft',
@@ -759,8 +817,7 @@ function main(program) {
                 fill: false,
                 yAxisID: 'intensity',
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
+                borderWidth: 1,
                 },
                 {
                 label: 'Intensitet total',
@@ -768,8 +825,7 @@ function main(program) {
                 fill: false,
                 yAxisID: 'intensity',
                 borderColor: 'rgba(0, 0, 0, 1)',
-                borderWidth: 1.5,
-                borderDash: [5, 5],
+                borderWidth: 1,
                 },
 
                 // Volume = reps
@@ -782,7 +838,7 @@ function main(program) {
                 borderColor: [
                     'rgba(255,99,132,1)',
                 ],
-                borderWidth: 2.5
+                borderWidth: 3,
                 },
 
                 {
@@ -792,7 +848,7 @@ function main(program) {
                 data: [],
                 yAxisID: 'volume',
                 borderColor:  'rgba(55, 152, 80, 1)',
-                borderWidth: 2.5
+                borderWidth: 3,
                 },
                 {
                 type: 'line',
@@ -803,7 +859,7 @@ function main(program) {
                 borderColor: [
                     'rgba(54, 162, 235, 1)',
                 ],
-                borderWidth: 2.5
+                borderWidth: 3,
                 },
                 {
                 type: 'line',
@@ -814,7 +870,57 @@ function main(program) {
                 borderColor: [
                     'rgba(0, 0, 0, 1)',
                 ],
-                borderWidth: 2.5
+                borderWidth: 3,
+                },
+
+
+                // INOL
+                {
+                type: 'line',
+                fill: false,
+                label: 'INOL knäböj',
+                data: [],
+                yAxisID: 'intensity',
+                borderColor: [
+                    'rgba(255,99,132,1)',
+                ],
+                borderWidth: 1,
+                borderDash: [5, 5],
+                },
+
+                {
+                type: 'line',
+                fill: false,
+                label: 'INOL bänkpress',
+                data: [],
+                yAxisID: 'intensity',
+                borderColor:  'rgba(55, 152, 80, 1)',
+                borderWidth: 1,
+                borderDash: [5, 5],
+                },
+                {
+                type: 'line',
+                fill: false,
+                label: 'INOL marklyft',
+                data: [],
+                yAxisID: 'intensity',
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                ],
+                borderWidth: 1,
+                borderDash: [5, 5],
+                },
+                {
+                type: 'line',
+                fill: false,
+                label: 'INOL total',
+                data: [],
+                yAxisID: 'intensity',
+                borderColor: [
+                    'rgba(0, 0, 0, 1)',
+                ],
+                borderWidth: 1,
+                borderDash: [5, 5],
                 },
 
             ]
@@ -899,57 +1005,6 @@ function main(program) {
     //document.getElementById('sessions').innerHTML = s
 }
 
-function print_session(cycle) {
-
-    var s = "<h1>Cycle <i>{}</i> ({})</h1>".format(cycle.name, cycle.date.ymdString())
-
-    var counter = 0
-    var week_counter = 0
-    for (var week of cycle.weeks) {
-        s += "<h2>Week {}</h2>".format(week.date.ymdString())
-
-        week_counter += 1
-        var session_counter = 0
-        for (var session of week.sessions) {
-            session_counter += 1
-            var stats = new E.Statistics(session)
-            let hours = Math.trunc(stats.minutes/60)
-            let minutes = Math.trunc(stats.minutes%60)
-            s += "<h3>Session {} ({} hours {} minutes)</h3>".format(session.date.ymdString(), hours, minutes)
-           
-            //print_prs(stats)
-            //console.log("-------------------------")
-            print_stats(stats)
-
-            // session & stats
-            s += "<b>Session</b><ul>"
-
-            // session
-            for (var line of session.lines) {
-                s += "<li>{}</li>".format(line.toString())
-            }
-            s += "</ul>"
-
-            counter += 1
-
-            // stats
-            s += "<b>Stats</b><ul>"
-
-            for (var root of stats.roots) {
-                let d = stats.data.get(root)
-                s += "<li>{}</li>".format(d)
-                /*
-                s += "<li>{}: {} kg, {} reps, inol {}, intensity min/avg/max: {}/{}/{}</li>".format(
-                    d.exercise, d.weight, d.rep_count, d.inol.toFixed(2), Math.trunc(d.min_set_percent), Math.trunc(d.avg_set_percent), Math.trunc(d.max_set_percent))
-                */
-            }
-            
-            s += "</ul>"
-        }
-    }
-
-}
-
 function print_prs(stats) {
     for (var ex of stats.data.keys()) {
         //if not 'prs' in stats.data[ex]['self']:
@@ -1012,3 +1067,179 @@ function print_stats(stats, print_children=true) {
 ////////////////////
 
 
+var selectedSessions = function(vals) {
+                /*
+                 * Print the actual sessions
+                 */
+                var s = ""
+                for (var index of vals) {
+                    var item = this.sessions[index]
+
+                    var session = item.session
+                    var stats = new E.Statistics(session)
+                    let hours = Math.trunc(stats.minutes/60)
+                    let minutes = Math.trunc(stats.minutes%60)
+
+                    s += "<h1>Session {} ({} hours {} minutes)</h1>".format(session.date.ymdString(), hours, minutes)
+
+                    s += "<table width='100%'>"
+                    // session
+                    var row = 0
+                    var lineattribs = ""
+                    var exattribs = ""
+                    for (var line of session.lines) {
+                        row += 1
+                        if (line.exercise instanceof E.KB ||
+                            line.exercise instanceof E.BP ||
+                            line.exercise instanceof E.ML) {
+                            exattribs = "style='font-weight: bold'"
+                        }
+                        else
+                            exattribs = ""
+
+                        s += "<tr {}><td><span {}>{}</span>{}</<td><td>{}</td></tr>".format(lineattribs, exattribs,
+                            line.exercise + "<br/>", "<em>" +line.note + "</em>",
+                            line.setsStringArray().join(", "))
+                        lineattribs = row % 2 == 0 ? "" : "style='background-color: #f0f0f0'"
+                    }
+                    s += "</table>"
+                }
+                this.sessionData = s
+
+                /*
+                 * Chart statistics
+                 */
+                var items = []
+                for (var index of vals) {
+                    var item = this.sessions[index]
+                    items.push(item.session)
+                }
+
+                var stats = new E.Statistics(items)
+
+                var dataReps = []
+                var dataIntensity = []
+                var chartLabels = []
+                
+                for (var e of [this.B.kb_tavling, this.B.bp_tavling, this.B.ml_tavling]) {
+                    if (stats.roots.has(e)) {
+                        var reps = stats.data.get(e).rep_count
+                        var avg_intensity = stats.data.get(e).avg_set_percent
+
+                        dataReps.push(reps)
+                        dataIntensity.push(avg_intensity)
+
+                        chartLabels.push(e.toString())
+                    }
+                }
+
+                sessionChart.data.datasets[0].data = dataReps
+                sessionChart.data.datasets[1].data = dataIntensity
+
+                sessionChart.data.labels = chartLabels
+                chart.options.scales.yAxes[1].display = true
+                sessionChart.update()
+            }
+
+
+var selectedWeeks = function(vals) {
+
+                /*
+                 * Chart statistics
+                 */
+                var items = []
+                for (var index of vals) {
+                    var item = this.weeks[index]
+                    console.info(item)
+                    items.push(item)
+                }
+
+                var dataReps = []
+                var dataIntensity = []
+                var chartLabels = []
+                
+                /*
+                 * One sesssion is one data point
+                 * - each data point belongs to three datasets: 0, 3 = kb, 1,4 = bp, 2,5 = ml
+                 */
+                var volumeKb = []
+                var intKb = []
+                var volumeBp = []
+                var intBp = []
+                var volumeMl = []
+                var intMl = []
+                var chartLabels = []
+                
+                for (var item of items) {
+                    for (var session of item.week.sessions) {
+                        console.info(session)
+                        var stats = new E.Statistics(session)
+
+                        chartLabels.push("W{} {}".format(item.index, session.date.ymdString()))
+
+                        // KB
+                        console.info(stats)
+                        var es = stats.data.get(this.B.kb_tavling)
+                        //console.log("KB_tavling")
+                        //console.info(es)
+                        volumeKb.push(es ? es.rep_count : 0)
+                        intKb.push(es ? es.avg_set_percent : 0)
+
+                        var es = stats.data.get(this.B.bp_tavling)
+                        //console.log("BP_tavling")
+                        //console.info(es)
+                        volumeBp.push(es ? es.rep_count : 0)
+                        intBp.push(es ? es.avg_set_percent : 0)
+
+                        var es = stats.data.get(this.B.ml_tavling)
+                        //console.log("ML_tavling")
+                        //console.info(es)
+                        volumeMl.push(es ? es.rep_count : 0)
+                        intMl.push(es ? es.avg_set_percent : 0)
+                    }
+                }
+
+                weekChart.data.datasets[0].data = volumeKb
+                weekChart.data.datasets[0+3].data = intKb
+
+                weekChart.data.datasets[1].data = volumeBp
+                weekChart.data.datasets[1+3].data = intBp
+
+                weekChart.data.datasets[2].data = volumeMl
+                weekChart.data.datasets[2+3].data = intMl
+
+                /*
+                var i = 0
+                for (var _ of volumeKb) {
+                    weekChart.data.datasets[0].bars[i++].fillColor = 'red'
+                    weekChart.data.datasets[0].bars[i++].fillColor = 'green'
+                    weekChart.data.datasets[0].bars[i++].fillColor = 'blue'
+                }
+                */
+
+                weekChart.data.labels = chartLabels
+                chart.options.scales.yAxes[1].display = true
+                weekChart.update()
+                
+                /*
+                for (var e of [B.kb_tavling, B.bp_tavling, B.ml_tavling]) {
+
+                    var stats = new E.Statistics(items)
+                    if (stats.roots.has(e)) {
+                        var reps = stats.data.get(e).rep_count
+                        var avg_intensity = stats.data.get(e).avg_set_percent
+
+                        dataReps.push(reps)
+                        dataIntensity.push(avg_intensity)
+
+                        chartLabels.push(e.toString())
+                    }
+                }
+
+                chart.data.datasets[0].data = dataReps
+                chart.data.datasets[1].data = dataIntensity
+
+                chart.data.labels = chartLabels
+                chart.update()
+                */
+            }

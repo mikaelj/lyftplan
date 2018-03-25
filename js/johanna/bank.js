@@ -14,8 +14,8 @@ export var armar = new E.Armar("")
 /*
  * Exercises actually used.
  */
-export var bp = new E.BP("pekfinger, stopp", {'parent': bp_tavling, 'reps': new Map([[1, [65, "2017-11-11"]]]), 'time': 5.1})
-export var sumomark = new E.ML("semisumo", {'parent': ml_tavling, 'reps': new Map([[1, [130, "2017-11-11"]]])})
+export var bp = new E.BP("pekfinger, stopp", {'parent': bp_tavling, 'reps': new Map([[1, [70, "2017-11-11"]]]), 'time': 5.1})
+export var sumomark = new E.ML("semisumo", {'parent': ml_tavling, 'reps': new Map([[1, [115, "2017-11-11"]]])})
 
 // parent = new E.ml, but intensity calculated against sumo's 1rm
 export var smalmark = new E.ML("smal", {'parent':ml_tavling, 'reps': new Map([[1, [130, "2018-01-20"]]])})
@@ -35,12 +35,15 @@ export var latsdrag = new E.Core("latsdrag", {'parent': core, 'time': 2})
 export var raka_latsdrag = new E.Core("raka latsdrag", {'parent': core, 'time': 2.1})
 export var rygglyft = new E.Core("rygglyft", {'parent': core, 'time': 1.6})
 export var sittande_rodd = new E.Core("sittande rodd", {'parent': core, 'time': 1.5})
+export var benlyft = new E.Core("hängande benlyft", {'parent': core, 'time': 1.5})
 
-export var pinpress = new E.BP("pinpress", {'parent': bp_tavling, 'reps': new Map([[1, [60, "2017-11-11"]]])})
-export var catapult = new E.BP("Catapult", {'parent': bp_tavling, 'reps': new Map([[1, [90, "2018-01-01"]]])})
-export var bpfu = new E.BP("FU, lill, stopp", {'parent': bp_tavling, 'reps': new Map([[1, [60, "2018-01-01"]]])})
+export var bp_pin = new E.BP("pinpress", {'parent': bp_tavling, 'reps': new Map([[1, [60, "2017-11-11"]]])})
+export var bp_catapult = new E.BP("Catapult", {'parent': bp_tavling, 'reps': new Map([[1, [90, "2018-01-01"]]])})
+export var bp_fu = new E.BP("FU, lill, stopp", {'parent': bp_tavling, 'reps': new Map([[1, [60, "2018-01-01"]]])})
 
 export var tricepsrep = new E.Armar("tricepsrep", {'parent': armar, 'time': 1.5})
+export var franskpress = new E.Armar("franskpress", {'parent': armar, 'time': 2})
+export var dips = new E.Armar("dips", {'parent': armar, 'time': 2.5})
 
 export var hantelflugor_omvanda = new E.Axlar("omvända hantelflugor", {"parent": axlar, "time": 1.5})
 export var militarpress = new E.Axlar("Militärpress", {'parent': axlar, 'reps': new Map([[1, [35, "2017-10-10"]]]), 'time':3})

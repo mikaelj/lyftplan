@@ -29,7 +29,7 @@
             <hr/>
 
             <div id="content" style="display: none">
-            <fieldset style='display: inline'><legend>Per-exercise over time</legend>
+            <fieldset style='display: inline'><legend>Data per session</legend>
                 <input type='checkbox' id='kb' value='kb' v-model='checkedExercises'/> <label for='kb'>Knäböj</label>
                 <input type='checkbox' id='bp' value='bp' v-model='checkedExercises'/> <label for='bp'>Bänkpress</label>
                 <input type='checkbox' id='ml' value='ml' v-model='checkedExercises'/> <label for='ml'>Marklyft</label>
@@ -38,6 +38,7 @@
                 <input type='checkbox' id='volume' value='volume' v-model='checkedTypes'/> <label for='volume'>Volym (repetitionsantal)</label>
                 <br/>
                 <input type='checkbox' id='intensity' value='intensity' v-model='checkedTypes'/> <label for='intensity'>Intensitet (snitt-% per set)</label>
+                <input type='checkbox' id='inol' value='inol' v-model='checkedTypes'/> <label for='inol'>INOL</label>
                 <hr/>
 
                 <select multiple v-model="selectedWeeksExercise"> <!-- @change="sessionChanged"> -->
@@ -49,8 +50,29 @@
             </fieldset>
 
 
+            <fieldset style='display: inline'><legend>Data per vecka</legend>
+                Summering per vecka.
+                <br/>
+                <input type='checkbox' id='kb' value='kb' v-model='perWeekCheckedExercises'/> <label for='kb'>Knäböj</label>
+                <input type='checkbox' id='bp' value='bp' v-model='perWeekCheckedExercises'/> <label for='bp'>Bänkpress</label>
+                <input type='checkbox' id='ml' value='ml' v-model='perWeekCheckedExercises'/> <label for='ml'>Marklyft</label>
+                <input type='checkbox' id='total' value='total' v-model='perWeekCheckedExercises'/> <label for='total'>Total</label>
+                <br/>
+                <input type='checkbox' id='reps' value='reps' v-model='perWeekCheckedTypes'/> <label for='reps'>Repetitioner</label>
+                <input type='checkbox' id='weight' value='weight' v-model='perWeekCheckedTypes'/> <label for='weight'>Totalvikt</label>
+                <input type='checkbox' id='inol' value='inol' v-model='perWeekCheckedTypes'/> <label for='inol'>INOL</label>
+                <hr/>
 
-            <fieldset style='display: inline'><legend>Exercise frequency</legend>
+                <select multiple v-model="perWeekSelectedWeeks"> <!-- @change="sessionChanged"> -->
+                    <option selected="selected" disabled value"">Välj veckor</option>
+                    <option v-for="week of weeks" v-bind:value="week.index">
+                        {{ week.title }}
+                    </option>
+                </select>
+            </fieldset>
+
+
+            <fieldset style='display: inline'><legend>Övningsfrekvens</legend>
                 <select multiple v-model="selectedWeeksFrequency"> <!-- @change="sessionChanged"> -->
                     <option selected="selected" disabled value"">Välj veckor</option>
                     <option v-for="week of weeks" v-bind:value="week.index">
